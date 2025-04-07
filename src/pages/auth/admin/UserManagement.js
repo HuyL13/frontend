@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import "../../../styles/Admin.css";
 import "../../../styles/UserManagement.css";
-
+import { X } from "lucide-react";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]); // Khởi tạo state users là mảng rỗng
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showMakeAdminModal, setShowMakeAdminModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [userInfo, setUserInfo] =useState(null); 
   const [loading, setLoading] = useState({
     initial: true,
     page: false,
@@ -30,10 +28,9 @@ const UserManagement = () => {
   const [editUser, setEditUser] = useState({
     email: "",
     firstName: "",
-    lastName: "",
-    password: "", // Thêm trường password
-  dob: "" // Thêm trường ngày sinh
+    lastName: ""
   });
+
 
   // Effect cho loading ban đầu
   useEffect(() => {
@@ -51,7 +48,7 @@ const UserManagement = () => {
       setLoading(prev => ({ ...prev, page: true }));
       try {
         const token = localStorage.getItem("authToken");
-        const response = await fetch("http://localhost:22986/demo/users/admin", {
+        const response = await fetch("https://backend-13-6qob.onrender.com/demo/users/admin", {
           method: "GET",
           headers: { 
             "Content-Type": "application/json",
@@ -110,7 +107,7 @@ const UserManagement = () => {
   const createUser = async (userData) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:22986/demo/users", {
+      const response = await fetch("https://backend-13-6qob.onrender.com/demo/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -155,15 +152,12 @@ const UserManagement = () => {
       setLoading(prev => ({ ...prev, form: false }));
     }
   };
-  const isValidDate = (dateString) => {
-    return !isNaN(new Date(dateString).getTime());
-  };
-  
+
   // Xóa user
   const deleteUser = async (userId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:22986/demo/users/admin/${userId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/admin/${userId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -178,38 +172,30 @@ const UserManagement = () => {
     }
   };
 
+  // Cập nhật user
   const updateUser = async (userId, updateData) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:22986/demo/users/${userId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "Accept": "application/json"
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          password: updateData.password,
-          firstName: updateData.firstName,
-          lastName: updateData.lastName,
-          email: updateData.email,
-          dob: updateData.dob
-        })
+            email: updateData.email,
+            firstName: updateData.firstName,
+            lastName: updateData.lastName
+          }
+          )
       });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Update failed");
-      }
-      
-      const data = await response.json();
-      console.log("Update user response: ", data);
-      return data;
+
+      if (!response.ok) throw new Error("Update failed");
+      return await response.json();
     } catch (error) {
       throw error;
     }
   };
-  
 
   // Xử lý cập nhật
   const handleUpdateUser = async () => {
@@ -234,7 +220,7 @@ const UserManagement = () => {
   const fetchUserDetail = async (userId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:22986/demo/users/admin/${userId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/admin/${userId}`, {
         method: "GET",
         headers: { 
           "Content-Type": "application/json",
@@ -258,71 +244,6 @@ const UserManagement = () => {
       throw new Error(`Failed to fetch user details: ${error.message}`);
     }
   };
-
-  const makeAdmin = async (userId) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        `http://localhost:22986/demo/users/admin/${userId}/make-admin`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to make admin");
-      }
-  
-      // Cập nhật role trong state
-      setUsers(users.map(user => 
-        user.id === userId 
-          ? { ...user, roles: [...user.roles, { name: "ADMIN" }] } 
-          : user
-      ));
-      
-      setShowMakeAdminModal(false);
-      setError("");
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  //fetch
-
-  useEffect(() => {
-      const fetchUserInfo = async () => {
-        try {
-          const token = localStorage.getItem('authToken');
-          const response = await fetch('http://localhost:22986/demo/users/my-info', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          console.log("1");
-          
-          console.log("1");
-          const data = await response.json();
-          console.log(data);
-          if (data.code !== 0) {
-            throw new Error('Lỗi trong response API');
-          }
-  
-          setUserInfo(data.result);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchUserInfo();
-    }, []);
   return (
     <div className="admin-overlay">
       {loading.initial && (
@@ -363,49 +284,27 @@ const UserManagement = () => {
                     setShowDetailModal(true);
                   }}
                 >
-                  &#128269;
+                  Detail
                 </button>
                 <button
-  className="btn btn-edit"
-  onClick={() => {
-    setSelectedUser(user);
-    setEditUser({
-      password: "", // Thêm trường password
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      dob: user.dob && user.dob !== "N/A" && isValidDate(user.dob)
-        ? new Date(user.dob).toISOString().split('T')[0]
-        : ""
-    });
-    setShowEditModal(true);
-  }}
->
-  &#128394;
-</button>
-{userInfo.roles &&
-  Array.isArray(userInfo.roles) &&
-  userInfo.roles.length === 1 &&
-  userInfo.roles[0].name==="ADMIN" && (
-   
-    <button
-      className="btn btn-danger"
-      onClick={() => deleteUser(user.id)}
-    >
-      &#128465;
-    </button>
-    
-)}
-
-                <button
-                  className="btn btn-danger"
+                  className="btn btn-edit"
                   onClick={() => {
                     setSelectedUser(user);
-                    setShowMakeAdminModal(true);
+                    setEditUser({
+                      email: user.email,
+                      firstName: user.firstName,
+                      lastName: user.lastName
+                    });
+                    setShowEditModal(true);
                   }}
                 >
-                  &#8648;
-
+                  Edit
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => deleteUser(user.id)}
+                >
+                  Delete
                 </button>
               </div>
             </div>
@@ -450,19 +349,6 @@ const UserManagement = () => {
                 value={newUser.lastName}
                 onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
               />
-              <input
-        type="password"
-        placeholder="New Password"
-        value={newUser.password}
-        onChange={(e) => setEditUser({ ...editUser, password: e.target.value })}
-      />
-      
-      {/* Thêm trường ngày sinh */}
-      <input
-        type="date"
-        value={newUser.dob}
-        onChange={(e) => setEditUser({ ...editUser, dob: e.target.value })}
-      />
               <div className="modal-actions">
                 <button
                   className="btn btn-success"
@@ -506,17 +392,6 @@ const UserManagement = () => {
                 value={editUser.lastName}
                 onChange={(e) => setEditUser({ ...editUser, lastName: e.target.value })}
               />
-              <input
-        type="password"
-        placeholder="Password"
-        value={editUser.password}
-        onChange={(e) => setEditUser({ ...editUser, password: e.target.value })} 
-      />
-      <input
-        type="date"
-        value={editUser.dob}
-        onChange={(e) => setEditUser({ ...editUser, dob: e.target.value })} 
-      />
               <div className="modal-actions">
                 <button
                   className="btn btn-success"
@@ -587,38 +462,12 @@ const UserManagement = () => {
         )}
       </div>
       <button
-        className="btn btn-close"
-        onClick={() => setShowDetailModal(false)}
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
-
-{/* Modal Make Admin */}
-{showMakeAdminModal && selectedUser && (
-  <div className="modal-overlay-admin" onClick={() => setShowMakeAdminModal(false)}>
-    <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-      <h3>Confirm Admin Promotion</h3>
-      <p>
-        Are you sure you want to make {selectedUser.username} ({selectedUser.email}) an admin?
-      </p>
-      {error && <div className="error-message">{error}</div>}
-      <div className="modal-actions">
-        <button
-          className="btn btn-warning"
-          onClick={() => makeAdmin(selectedUser.id)}
-        >
-          Confirm
-        </button>
-        <button
-          className="btn btn-cancel"
-          onClick={() => setShowMakeAdminModal(false)}
-        >
-          Cancel
-        </button>
-      </div>
+  className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition-all"
+  onClick={() => setShowDetailModal(false)}
+>
+  <X className="w-5 h-5" />
+  Close
+</button>
     </div>
   </div>
 )}

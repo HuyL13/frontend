@@ -21,7 +21,7 @@ const Resident = () => {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("Auth token not found!");
   
-      const response = await fetch(`http://localhost:22986/demo/users/unpaid`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/unpaid`, {
         mode: "cors",
         method: "GET",
         headers: { 

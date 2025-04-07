@@ -20,7 +20,7 @@ const FeeManagement = () => {
   const fetchFees = async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:22986/demo/admin/fees', {
+      const response = await fetch('https://backend-13-6qob.onrender.com/demo/admin/fees', {
         mode: 'cors',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -50,7 +50,7 @@ const FeeManagement = () => {
       const token = localStorage.getItem('authToken');
       
       // Tạo URL với query parameters
-      const apiUrl = new URL('http://localhost:22986/demo/admin/fees/add');
+      const apiUrl = new URL('https://backend-13-6qob.onrender.com/demo/admin/fees/add');
       const params = {
         roomNumber: newFee.roomNumber,
         description: newFee.description,
@@ -97,7 +97,7 @@ const FeeManagement = () => {
       });
       
       const response = await fetch(
-        `http://localhost:22986/demo/admin/fees/update-status?${params}`,
+        `https://backend-13-6qob.onrender.com/demo/admin/fees/update-status?${params}`,
         {
           mode: 'cors',
           method: 'PUT',
@@ -130,7 +130,7 @@ const FeeManagement = () => {
       };
       
       const response = await fetch(
-        `http://localhost:22986/demo/admin/fees/${selectedFee.id}`,
+        `https://backend-13-6qob.onrender.com/demo/admin/fees/${selectedFee.id}`,
         {
           mode: 'cors',
           method: 'PUT',
@@ -159,7 +159,7 @@ const FeeManagement = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `http://localhost:22986/demo/admin/fees/${feeId}`,
+        `https://backend-13-6qob.onrender.com/demo/admin/fees/${feeId}`,
         {
           mode: 'cors',
           method: 'DELETE',
@@ -187,7 +187,10 @@ const FeeManagement = () => {
   return (
     <div className="fee-management">
       <div className="header">
-        <h2>Fee Management</h2>
+      <h2 className="text-white drop-shadow-lg">
+  Fee Management
+</h2>
+
         <button
           className="add-button"
           onClick={() => setShowAddModal(true)}
@@ -197,14 +200,14 @@ const FeeManagement = () => {
       </div>
 
       <table>
-        <thead>
+        <thead className="bg-gray-200 text-black">
           <tr>
-            <th>Room #</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Due Date</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th className="text-black">Room #</th>
+            <th className="text-black">Description</th>
+            <th className="text-black">Amount</th>
+            <th className="text-black">Due Date</th>
+            <th className="text-black">Status</th>
+            <th className="text-black">Actions</th>
           </tr>
         </thead>
         <tbody>

@@ -40,7 +40,7 @@ const Login = () => {
   
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:22986/demo/auth/login", {
+      const response = await fetch("https://backend-13-6qob.onrender.com/demo/auth/login", {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify({
@@ -101,7 +101,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:22986/demo/auth/request-otp?email=${encodeURIComponent(modalState.email)}`,
+        `https://backend-13-6qob.onrender.com/demo/auth/request-otp?email=${encodeURIComponent(modalState.email)}`,
         { method: "POST" }
       );
 
@@ -129,7 +129,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:22986/demo/auth/verify-otp?email=${encodeURIComponent(modalState.email)}&otp=${encodeURIComponent(otp)}`,
+        `https://backend-13-6qob.onrender.com/demo/auth/verify-otp?email=${encodeURIComponent(modalState.email)}&otp=${encodeURIComponent(otp)}`,
         { method: 'POST', headers: requestHeaders }
       );
 
@@ -163,7 +163,7 @@ const Login = () => {
     };
   
     try {
-      const response = await fetch(`http://localhost:22986/demo/auth/reset-password?email=${email}&otp=${otp}&newPassword=${newPassword}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/auth/reset-password?email=${email}&otp=${otp}&newPassword=${newPassword}`, {
         method: "POST",
         
         body: JSON.stringify(payload)

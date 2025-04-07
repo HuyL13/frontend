@@ -56,7 +56,7 @@ const [selectedRoomNumber, setSelectedRoomNumber] = useState(null);
   const createRoom = async (roomData) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:22986/demo/admin/room/new", {
+      const response = await fetch("https://backend-13-6qob.onrender.com/demo/admin/room/new", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -109,7 +109,7 @@ const [selectedRoomNumber, setSelectedRoomNumber] = useState(null);
     setLoading((prev) => ({ ...prev, page: true }));
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:22986/demo/admin/room", {
+      const response = await fetch("https://backend-13-6qob.onrender.com/demo/admin/room", {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`, 
@@ -144,7 +144,7 @@ const [selectedRoomNumber, setSelectedRoomNumber] = useState(null);
   const deleteRoom = async (roomId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:22986/demo/admin/room/${roomId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/admin/room/${roomId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -166,7 +166,7 @@ const showRoomUser = async (roomNumber) => {
   try {
     console.log("!");
     const token = localStorage.getItem("authToken");
-    const response = await fetch(`http://localhost:22986/demo/admin/room/users?roomNumber=${roomNumber}`, { // Sửa endpoint
+    const response = await fetch(`https://backend-13-6qob.onrender.com/demo/admin/room/users?roomNumber=${roomNumber}`, { // Sửa endpoint
       method: "GET",
       headers: {
         
@@ -174,7 +174,7 @@ const showRoomUser = async (roomNumber) => {
         "Authorization": `Bearer ${token}`,
       },
     });
-    console.log(`http://localhost:22986/demo/admin/room/users?roomId=${roomNumber}`);
+    console.log(`https://backend-13-6qob.onrender.com/demo/admin/room/users?roomId=${roomNumber}`);
     console.log("1");
     
     console.log("2");
@@ -193,7 +193,7 @@ const showRoomUser = async (roomNumber) => {
 const addRoomUser = async () => {
   try {
     const token = localStorage.getItem("authToken");
-    const response = await fetch(`http://localhost:22986/demo/admin/room/addUser`, {
+    const response = await fetch(`https://backend-13-6qob.onrender.com/demo/admin/room/addUser`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -54,7 +54,7 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:22986/demo/users/create", {
+      const response = await fetch("https://backend-13-6qob.onrender.com/demo/users/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
