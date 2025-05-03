@@ -1,0 +1,179 @@
+/* Navbar chính */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 12px 20px;
+  background-color: #00008b !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Container chứa logo và toggle switch */
+.brand-toggle-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Logo (Navbar Brand) */
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+}
+
+/* Toggle switch - kéo dài công tắc */
+.toggle-switch {
+  position: absolute;
+  top: 50%;
+  left: 100%; /* ngay bên phải logo */
+  transform: translateY(-50%);
+  margin-left: 10px;
+}
+
+.toggle-switch .form-check-input {
+  width: 50px;  /* tăng chiều rộng */
+  height: 25px; /* tăng chiều cao */
+  cursor: pointer;
+}
+
+/* Đảm bảo container của modal (nav-item chứa nút Quản trị) có vị trí relative */
+.nav-item {
+  position: relative;
+}
+
+/* Modal - hiển thị gần vị trí hover (đặt modal ngay dưới nút Quản trị) */
+.admin-modal-overlay {
+  position: absolute;
+  top: 100%; /* Xuất hiện ngay dưới nav-item */
+  left: 0;
+  margin-top: 4px; /* Khoảng cách nhỏ giữa modal và nút hover */
+  z-index: 1001;
+}
+
+.admin-modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 240px;
+  animation: modalSlide 0.3s ease-out;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+@keyframes modalSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.admin-modal-header h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+/* Modal item */
+.modal-item {
+  display: block;
+  padding: 12px 24px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.5s;
+  font-size: 0.95rem;
+}
+
+/* Khi hover modal-item thì chuyển background thành aqua */
+.modal-item:hover {
+  background-color: aqua !important;
+  padding-left: 28px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-modal-content {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    animation: mobileModalSlide 0.3s ease-out;
+  }
+
+  @keyframes mobileModalSlide {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .modal-item {
+    padding: 14px 20px;
+    z-index: 1000;
+  }
+  
+  .modal-item:hover {
+    background-color: aqua;
+    padding-left: 28px;
+  }
+
+  .navbar-nav {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* Các styles còn lại giữ nguyên */
+.settings-icon {
+  font-size: 1.2rem;
+  transition: transform 0.3s;
+}
+
+.settings-icon:hover {
+  transform: rotate(180deg);
+}
+
+.btn-light {
+  transition: all 0.3s;
+}
+
+.form-check-label {
+  user-select: none;
+}

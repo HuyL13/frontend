@@ -1,0 +1,190 @@
+body {
+  width: 100vw;
+  min-height: 100vh;
+  background: url('/src/resources/blue_moon.webp') no-repeat center center fixed;
+  background-size: cover;
+  margin: 0;
+  padding: 0;
+  
+}
+
+.login-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  padding: 30px;
+  border: 2px solid #4CAF50;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(30px);
+  margin-top:15vh;
+}
+
+
+.login-container input {
+  width: 100%;
+  max-width: 300px;
+  padding: 12px 20px;
+  margin: 10px 0;
+  border: 2px solid #2196F3;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.login-container input:hover,
+.login-container input:focus {
+  border-color: #4CAF50;
+  outline: none;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+}
+
+.input-error {
+  border-color: #ff4444 !important;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.login-container button {
+  width: auto;
+  min-width: 120px;
+  padding: 12px 25px;
+  margin: 10px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(45deg, #4CAF50, #2196F3);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-container button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.login-container button:disabled {
+  background: #95a5a6;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ff4444;
+  font-size: 14px;
+  margin: 8px 0;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  
+  padding: 25px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.otp-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.otp-container input {
+  width: 45px;  /* Tăng kích thước */
+  height: 45px;
+  text-align: center;
+  font-size: 24px;
+  border: 2px solid #2196F3;
+  background: #ffffff; /* Nền trắng */
+  color: #000000; /* Chữ đen */
+  border-radius: 10px;
+  padding: 0; /* Xóa padding */
+  margin: 0 5px;
+}
+
+/* Thêm style cho placeholder */
+.otp-container input::placeholder {
+  color: #b0bec5; /* Màu placeholder xám */
+  opacity: 1;
+}
+
+/* Hiệu ứng focus rõ ràng */
+.otp-container input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  outline: none;
+}
+
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .login-container {
+    width: 95%;
+    padding: 20px;
+  }
+  
+  .otp-container input {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .modal-content {
+    padding: 20px;
+  }
+}

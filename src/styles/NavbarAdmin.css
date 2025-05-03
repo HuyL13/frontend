@@ -1,0 +1,214 @@
+/* Thêm ở đầu file CSS */
+:root {
+    --dropdown-bg: #ffffff;
+    --dropdown-text: #333333;
+    --dropdown-border: #dddddd; 
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --dropdown-bg: #ffffff; /* Vẫn giữ màu trắng */
+      --dropdown-text: #333333; /* Vẫn giữ màu chữ tối */
+      --dropdown-border: #dddddd;
+      --dropdown-hover: #f8f9fa;
+    }
+  }
+  
+  /* Định dạng thanh điều hướng (Navbar cố định) */
+  .navbar {
+    position: block;
+    height:15vh;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1100;
+    padding: 10px 20px;
+    background-color: #00008b; /* Blue chính thức */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    /* Loại bỏ margin-bottom để tránh làm rộng navbar khi dropdown xuất hiện */
+  }
+  
+  /* Container bên trong navbar */
+  .navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  /* Logo */
+  .navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    transition: transform 0.3s ease;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .navbar-brand:hover {
+    transform: scale(1.05);
+    color: #ffdd57 !important;
+  }
+  
+  /* Menu items */
+  .navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    margin: 0;
+  }
+  
+  /* Navigation links */
+  .navbar-nav .nav-link {
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+  
+  .navbar-nav .nav-link:not(.active):hover {
+    color: #ffdd57;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar-nav .nav-link.active {
+    color: #ffdd57 !important;
+    background: rgba(255, 221, 87, 0.1);
+    border-bottom: 2px solid #ffdd57;
+  }
+  
+  /* Settings icon specific styles */
+  .nav-link-default {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px !important;
+  }
+  
+  .settings-icon {
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
+    margin-bottom: 2px;
+  }
+  
+  .settings-icon:hover {
+    transform: rotate(180deg);
+    color: #ffdd57;
+  }
+  
+  /* Logout button */
+  .navbar .btn-light {
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    color: #dc3545;
+    font-weight: 600;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .navbar .btn-light:hover {
+    background: linear-gradient(145deg, #ffdd57, #ffd700);
+    color: #b30000;
+    transform: translateY(-2px);
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .navbar {
+      padding: 10px;
+    }
+    
+    .navbar .container {
+      flex-direction: column;
+    }
+    
+    .navbar-collapse {
+      width: 100%;
+      background: rgba(0, 0, 139, 0.95);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 10px;
+    }
+    
+    .navbar-nav {
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+    }
+    
+    .nav-item {
+      width: 100%;
+      text-align: right;
+    }
+    
+    .navbar .btn-light {
+      width: auto;
+      margin-top: 10px;
+    }
+    
+    .nav-link-default {
+      justify-content: flex-end;
+    }
+  }
+  
+  /* NavbarAdmin.css - Dropdown styles */
+  
+  .dropdown-container {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .admin-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    z-index: 10000;
+    padding: 0.5rem 0;
+    /* Đảm bảo dropdown không ảnh hưởng đến layout của navbar */
+    pointer-events: auto;
+  }
+  
+  .dropdown-container .dropdown-item {
+    display: flex;
+    padding: 0.5rem 1.5rem;
+    background-color: white !important;
+    color: #333 !important;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 5px !important;
+    margin: 2px 8px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .dropdown-container .dropdown-item:hover {
+    background-color: #f8f9fa !important;
+    color: #000 !important;
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(5, 238, 238, 0.5);
+  }
+  
+  .dropdown-container .dropdown-item.active {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+  
+  .dropdown-toggle::after {
+    display: inline-block;
+    margin-left: 0.255em;
+    vertical-align: 0.255em;
+    content: "";
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
+  }
+  

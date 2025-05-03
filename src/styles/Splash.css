@@ -1,0 +1,22 @@
+.splash-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    color: white;
+    text-align: center;
+  }
+  
+  .splash-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .splash-subtitle {
+    font-size: 1.5rem;
+    opacity: 0.8;
+  }
+  

@@ -1,0 +1,148 @@
+/* FeeManagement.css */
+.fee-management {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .add-button {
+    background-color: #4CAF50 !important;
+    color: white !important;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .add-button:hover {
+    background-color: #45a049 !important;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  th,
+  td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  th {
+    background-color: #f8f9fa !important;
+    font-weight: 600;
+  }
+  
+  .status-select {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+  
+  .status-select.unpaid {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+  }
+  
+  .status-select.paid {
+    background-color: #d4edda !important;
+    color: #155724 !important;
+  }
+  
+  .edit-button {
+    background-color: #2196F3 !important;
+    color: white !important;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+    cursor: pointer;
+  }
+  
+  .delete-button {
+    background-color: #f44336 !important;
+    color: white !important;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  /* Modal styles */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 1) !important; /* Đặt nền modal thành màu đen đặc */
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Đảm bảo modal nằm trên các phần tử khác */
+  }
+  
+  .modal-content {
+    background-color: white !important;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 400px;
+    position: relative;
+    z-index: 1001; /* Nội dung modal hiển thị trên modal overlay */
+  }
+  
+  .close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .modal-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+  
+  input[type="text"],
+  input[type="number"],
+  input[type="date"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+  }
+  
+  .error {
+    color: #dc3545 !important;
+    padding: 2rem;
+    text-align: center;
+  }
+  .table-header{
+    color:#f44336;
+  }
+  .fee-header{
+    color: white !important;
+  }

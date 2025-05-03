@@ -1,0 +1,246 @@
+/* UserManagement.css */
+
+/* Main layout */
+.admin-overlay {
+    
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  
+  .admin-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+   
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 2rem;
+  }
+  
+  .name {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+  }
+  
+  /* User list grid */
+  .user-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .add-button{
+    background-color:#27ae60;
+    border-radius:10px;
+  }
+  /* User card */
+  .user-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .user-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .user-info h4 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+  }
+  
+  .user-info p {
+    color: #7f8c8d;
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+  }
+  
+  /* User actions */
+  .user-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .btn-add {
+    background-color: #3498db;
+    color: white;
+    margin-bottom: 1.5rem;
+  }
+  
+  .btn-add:hover {
+    background-color: #2980b9;
+  }
+  
+  .btn-info {
+    background-color: #3498db;
+    color: white;
+  }
+  
+  .btn-edit {
+    background-color: #27ae60;
+    color: white;
+  }
+  
+  .btn-danger {
+    background-color: #e74c3c;
+    color: white;
+  }
+  
+  .btn-success {
+    background-color: #27ae60;
+    color: white;
+  }
+  
+  .btn-cancel {
+    background-color: #95a5a6;
+    color: white;
+  }
+  
+  /* Modals */
+  .modal-overlay-admin {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content-admin {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .modal-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+  
+  /* Form elements */
+  input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+  }
+  
+  /* Loading states */
+  .initial-loading,
+  .page-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.9);
+    z-index: 1000;
+  }
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Error messages */
+  .error-message {
+    color: #e74c3c;
+    background-color: #f8d7da;
+    padding: 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid #f5c6cb;
+  }
+  
+  /* Role tags */
+  .role-tag {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin: 0.2rem;
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .admin-overlay {
+      padding: 1rem;
+    }
+  
+    .user-list {
+      grid-template-columns: 1fr;
+    }
+  
+    .modal-content-admin {
+      width: 95%;
+      padding: 1rem;
+    }
+  }
+  
+  /* Utility classes */
+  .no-data-message {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 2rem;
+    font-size: 1.1rem;
+  }
+  
+  .is-invalid {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 2px rgba(231,76,60,0.2);
+  }

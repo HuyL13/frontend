@@ -1,0 +1,115 @@
+.resident-overlay {
+    display: flex;
+    
+    height: 100vh;
+   
+  }
+  
+  .resident-layout {
+    width: 100vw;
+    
+    padding: 10px;
+    
+    border-radius: 10px;
+    
+  }
+.resident-fees{
+  color:#ffffff;
+    width:20vw;
+
+}
+  .fee-list {
+    display: grid;
+  grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  
+  .fee-detail {
+    width:25vw;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #007bff;
+  }
+  
+  .fee-detail h4 {
+    margin: 0;
+    color: #007bff;
+  }
+  
+  .fee-detail p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+.fee-card{
+  width:30vw;
+  display: flex;
+  flex-direction: row;
+  margin-bottom:10px;
+  margin-top:10px;
+}
+.qr-code{
+    display:flex;
+    position: relative;
+    justify-content: right;
+    margin-right: 5vw;
+    margin-top:10px;
+    padding:2px;
+    margin-bottom:10px;
+}
+  /* Resident.css */
+.qr-modal {
+  max-width: 400px;
+  text-align: center;
+}
+
+.qr-image {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+.payment-instruction {
+  margin-top: 1rem;
+  color: #666;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.text{
+  color:white !important;
+}

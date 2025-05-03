@@ -1,0 +1,73 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^13.5.0",
+    "bootstrap": "^5.3.5",
+    "codemirror": "^6.0.1",
+    "css-loader": "^7.1.2",
+    "d3": "^7.9.0",
+    "d3-collection": "^1.0.7",
+    "d3-shape": "^3.2.0",
+    "d3-time": "^3.1.0",
+    "d3-time-format": "^4.1.0",
+    "d3-timer": "^3.0.1",
+    "d3-transition": "^3.0.1",
+    "d3-voronoi": "^1.1.4",
+    "d3-zoom": "^3.0.0",
+    "datatables.net": "^2.3.0",
+    "datatables.net-bs4": "^2.3.0",
+    "datatables.net-responsive": "^3.0.4",
+    "date-fns": "^4.1.0",
+    "flot": "^4.2.6",
+    "icofont": "^1.0.0",
+    "ionicons": "^8.0.0",
+    "jquery": "^3.7.1",
+    "jquery.flot": "^0.8.3",
+    "moment": "^2.30.1",
+    "perfect-scrollbar": "^1.5.6",
+    "popper.js": "^1.16.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-helmet": "^6.1.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.2.0",
+    "react-scripts": "5.0.1",
+    "resolve-url-loader": "^5.0.0",
+    "sass": "^1.86.3",
+    "sass-loader": "^16.0.5",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "eslint-config-standard": "^17.1.0"
+  }
+}

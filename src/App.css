@@ -1,0 +1,16 @@
+
+.navbar {
+  background: #007bff;
+  padding: 2vh 0; 
+  text-align: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw; 
+  height: 8vh; 
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

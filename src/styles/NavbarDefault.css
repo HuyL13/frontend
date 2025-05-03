@@ -1,0 +1,39 @@
+.settings-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 5px;
+}
+
+.settings-icon {
+  font-size: 24px;
+  color: white;
+  transition: color 0.3s;
+}
+
+.settings-icon:hover . {
+  color: red; /* Màu sáng hơn khi hover */
+  box-shadow: 0px 0px 10px white;
+}
+
+.settings-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 120%; /* Điều chỉnh xuống một chút để không bị che */
+  white-space: nowrap;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.settings-link:hover .settings-text {
+  visibility: visible;
+  opacity: 1;
+}
