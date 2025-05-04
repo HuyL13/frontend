@@ -187,66 +187,94 @@ const FeeManagement = () => {
 
   return (
     <div className="fee-management">
-      <div className="fee-header">
-        <h2>Danh sách các khoản thu</h2>
-        <button
-          className="add-button"
+
+
+      <div className="d-flex justify-content-end mb-3">
+        <button 
+          className="btn btn-primary" 
           onClick={() => setShowAddModal(true)}
         >
-          Add New Fee
+          <i className="ik ik-plus mr-1"></i> Thêm khoản thu
         </button>
       </div>
-
-      <table>
-        <thead>
-          <tr className ="table-header">
-            <th>Room #</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Due Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {fees.map(fee => (
-            <tr key={fee.id}>
-              <td>{fee.roomNumber}</td>
-              <td>{fee.description}</td>
-              <td>{Number(fee.amount)}vnd</td>
-              <td>{format(new Date(fee.dueDate), 'dd/MM/yyyy')}</td>
-              <td>
-                <select 
-                  value={fee.status} 
-                  onChange={(e) => handleStatusChange(fee.id, e.target.value)}
-                  className={`status-select ${fee.status.toLowerCase()}`}
+      
+      <div className="card table-card">
+        <div className="card-header">
+          <h3>Danh sách khoản thu</h3>
+          <div className="card-header-right">
+            <ul className="list-unstyled card-option">
+              <li><i className="ik ik-chevron-left action-toggle"></i></li>
+              <li><i className="ik ik-minus minimize-card"></i></li>
+              <li>
+                <div 
+                  className="add-fee" 
+                  onClick={() => setShowAddModal(true)}
+                  title="Thêm khoản thu mới"
                 >
-                  <option value="UNPAID">Unpaid</option>
-                  <option value="PAID">Paid</option>
-                </select>
-              </td>
-              <td>
-                <button 
-                  className="edit-button"
-                  onClick={() => {
-                    setSelectedFee(fee);
-                    setShowEditModal(true);
-                  }}
-                >
-                  &#128394;
-                </button>
-                <button 
-                  className="delete-button"
-                  onClick={() => handleDeleteFee(fee.id)}
-                >
-                 &#128465;
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
+                  <i className="ik ik-plus text-primary"></i>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="card-block">
+          <div className="table-responsive">
+            <table className="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Tên phòng</th>
+                  <th>Tên khoản phí</th>
+                  <th>Số tiền cần thu</th>
+                  <th>Hạn thu</th>
+                  <th>Trạng thái</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fees.map(fee => (
+                  <tr key={fee.id}>
+                    <td>Phòng {fee.roomNumber}</td>
+                    <td>{fee.description}</td>
+                    <td>{Number(fee.amount).toLocaleString()}vnd</td>
+                    <td>{format(new Date(fee.dueDate), 'dd/MM/yyyy')}</td>
+                    <td>
+                      <select 
+                        value={fee.status} 
+                        onChange={(e) => handleStatusChange(fee.id, e.target.value)}
+                        className={`status-select ${fee.status.toLowerCase()}`}
+                      >
+                        <option value="UNPAID">Unpaid</option>
+                        <option value="PAID">Paid</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div className="btn-group">
+                        <button
+                          className="btn btn-icon"
+                          onClick={() => {
+                            setSelectedFee(fee);
+                            setShowEditModal(true);
+                          }}
+                          title="Chỉnh sửa"
+                        >
+                          <i className="ik ik-edit-2 f-16 text-primary"></i>
+                        </button>
+                        <button
+                          className="btn btn-icon"
+                          onClick={() => handleDeleteFee(fee.id)}
+                          title="Xóa khoản thu"
+                        >
+                          <i className="ik ik-trash-2 f-16 text-danger"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       {/* Add Fee Modal */}
       {showAddModal && (
         <div className="modal" onClick={() => setShowAddModal(false)}>

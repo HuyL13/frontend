@@ -107,10 +107,25 @@ const GuestManagement = () => {
 
   return (
     <div className="guest-management">
-      <h2>Danh sách Khách</h2>
       
-      {guests.length > 0 ? (
-        <table>
+      
+      <div>
+  
+
+  <div className="card table-card">
+    <div className="card-header">
+      <h3>Danh sách khách</h3>
+      <div className="card-header-right">
+        <ul className="list-unstyled card-option">
+          <li><i className="ik ik-chevron-left action-toggle" /></li>
+          <li><i className="ik ik-minus minimize-card" /></li>
+          <li><i className="ik ik-x close-card" /></li>
+        </ul>
+      </div>
+    </div>
+    <div className="card-block">
+      <div className="table-responsive">
+        <table className="table table-hover mb-0">
           <thead>
             <tr>
               <th>ID</th>
@@ -122,46 +137,64 @@ const GuestManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {guests.map(guest => {
-              const status = activationStatus[guest.email] || {};
-              return (
-                <tr key={guest.id}>
-                  <td>{guest.id}</td>
-                  <td>{guest.username}</td>
-                  <td>{guest.lastName || 'N/A'}</td>
-                  <td>{guest.email}</td>
-                  <td>{new Date(guest.dob).toLocaleDateString('vi-VN')}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="activate-btn"
-                        onClick={() => handleActivate(guest.email)}
-                        disabled={status.loading}
-                      >
-                        {status.loading ? 'Đang xử lý...' : 'Kích hoạt'}
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(guest.id)}
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                    {status.message && (
-                      <div className={`status-message ${status.success ? 'success' : 'error'}`}>
-                        {status.message}
+            {guests.length > 0 ? (
+              guests.map(guest => {
+                const status = activationStatus[guest.email] || {};
+                return (
+                  <tr key={guest.id}>
+                    <td>{guest.id}</td>
+                    <td>{guest.username}</td>
+                    <td>{guest.lastName || 'N/A'}</td>
+                    <td>{guest.email}</td>
+                    <td>{new Date(guest.dob).toLocaleDateString('vi-VN')}</td>
+                    <td>
+                      <div className="btn-group">
+                        <button
+                          className="btn btn-icon"
+                          onClick={() => handleActivate(guest.email)}
+                          disabled={status.loading}
+                          title="Kích hoạt"
+                        >
+                          {status.loading 
+                            ? <i className="ik ik-loader f-16 text-primary" /> 
+                            : <i className="ik ik-check f-16 text-success" />
+                          }
+                        </button>
+                        <button
+                          className="btn btn-icon"
+                          onClick={() => handleDelete(guest.id)}
+                          title="Xóa khách"
+                        >
+                          <i className="ik ik-trash-2 f-16 text-danger" />
+                        </button>
                       </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                      {status.message && (
+                        <div
+                          className={`status-message mt-2 ${
+                            status.success ? 'success' : 'error'
+                          }`}
+                        >
+                          {status.message}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="6" className="text-center">
+                  Không có khách nào
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-      ) : (
-        <p className="no-data">Không có khách nào</p>
-      )}
+      </div>
     </div>
+  </div>
+</div>
+</div>
   );
 };
 

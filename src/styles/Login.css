@@ -1,7 +1,7 @@
 body {
   width: 100vw;
   min-height: 100vh;
-  background: url('/src/resources/blue_moon.webp') no-repeat center center fixed;
+  background: white;
   background-size: cover;
   margin: 0;
   padding: 0;

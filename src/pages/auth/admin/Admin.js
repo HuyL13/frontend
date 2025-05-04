@@ -25,7 +25,9 @@ const Admin = () => {
     peopleCount: "",
   });
   const [roomUsers, setRoomUsers] = useState([]);
-  const [fullRoom,setFullRoom] = useState([]);
+  const [fullRoom, setFullRoom] = useState([]);
+  const [showUserModal, setShowUserModal] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading((prev) => ({ ...prev, initial: false }));
@@ -118,7 +120,7 @@ const Admin = () => {
       });
       if (!response.ok) throw new Error("Lỗi khi lấy danh sách phòng");
       const data = await response.json();
-      console.log("có id ko",data);
+      console.log("có id ko", data);
       setFullRoom(data);
       const formattedRooms = data.map((room) => ({
         ...room,
@@ -175,7 +177,7 @@ const Admin = () => {
         }
       );
       const data = await response.json();
-      console.log("đây là data",data);
+      console.log("đây là data", data);
       setRoomUsers(data);
       setShowUserModal(true);
     } catch (error) {
@@ -217,7 +219,6 @@ const Admin = () => {
 
   const handleRemoveUser = async (roomId, userId) => {
     try {
-      
       const token = localStorage.getItem("authToken");
       const response = await fetch(
         `http://localhost:22986/demo/admin/room/${roomId}/users/${userId}`,
@@ -254,9 +255,6 @@ const Admin = () => {
       alert(err.message);
     }
   };
-  
-
-  const [showUserModal, setShowUserModal] = useState(false);
 
   return (
     <div className="admin-overlay-1">
@@ -273,243 +271,263 @@ const Admin = () => {
         </div>
       )}
 
-      <div className="admin-layout-1">
-        <h2 className="name">Danh sách phòng</h2>
-        <div className="room-list">
-          <div className="add-room" onClick={() => setShowForm(true)}>
-            <div className="add-room-detail">
-              <div className="add-room-icon">+</div>
+      <div >
+      <div className="d-flex justify-content-end mb-3">
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setShowForm(true)}
+          >
+            <i className="ik ik-plus mr-1"></i> Thêm phòng
+          </button>
+        </div>
+        <div className="card table-card">
+          <div className="card-header">
+            <h3>Danh sách phòng</h3>
+            <div className="card-header-right">
+              <ul className="list-unstyled card-option">
+                <li><i className="ik ik-chevron-left action-toggle"></i></li>
+                <li><i className="ik ik-minus minimize-card"></i></li>
+                <li>
+                  <div 
+                    className="add-room" 
+                    onClick={() => setShowForm(true)}
+                    title="Thêm phòng mới"
+                  >
+                    <i className="ik ik-plus text-primary"></i>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
+          <div className="card-block">
+            <div className="table-responsive">
+              <table className="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Tên phòng</th>
+                    <th>Tầng</th>
+                    <th>Số người</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rooms.map((room) => (
+                    <tr key={room.id}>
+                      <td>Phòng {room.roomNumber || room.id}</td>
+                      <td>{room.floor}</td>
+                      <td>{room.peopleCount} người</td>
+                      <td>
+                        <div className="p-status bg-green"></div>
+                      </td>
+                      <td>
+                        <div className="btn-group">
+                          <button
+                            className="btn btn-icon"
+                            onClick={() => handleShowModal(room)}
+                            title="Chi tiết"
+                          >
+                            <i className="ik ik-info f-16 text-primary"></i>
+                          </button>
+                          <button
+                            className="btn btn-icon"
+                            onClick={() => deleteRoom(room.id)}
+                            title="Xóa phòng"
+                          >
+                            <i className="ik ik-trash-2 f-16 text-danger"></i>
+                          </button>
+                          <button
+                            className="btn btn-icon"
+                            onClick={() => showRoomUser(room)}
+                            title="Danh sách người dùng"
+                          >
+                            <i className="ik ik-users f-16 text-success"></i>
+                          </button>
+                          <button
+                            className="btn btn-icon"
+                            onClick={() => handleOpenAddUser(room.roomNumber)}
+                            title="Thêm người dùng"
+                          >
+                            <i className="ik ik-user-plus f-16 text-info"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          {rooms.map((room) => (
-            <div key={room.id} className="room-card">
-              <div className="room-detail">
-                <h4>Phòng {room.roomNumber || room.id}</h4>
+      {showForm && (
+        <div className="form-overlay">
+          <div className="form-content">
+            <h3>Thêm phòng</h3>
+            {error && <div className="error-message">{error}</div>}
+            <input
+              type="text"
+              placeholder="Số phòng"
+              value={newRoom.roomNumber}
+              onChange={(e) =>
+                setNewRoom({ ...newRoom, roomNumber: e.target.value })
+              }
+            />
+            <input
+              type="number"
+              placeholder="Tầng"
+              value={newRoom.floor}
+              onChange={(e) =>
+                setNewRoom({ ...newRoom, floor: e.target.value })
+              }
+            />
+            <input
+              type="number"
+              placeholder="Sức chứa"
+              value={newRoom.peopleCount}
+              onChange={(e) =>
+                setNewRoom({ ...newRoom, peopleCount: e.target.value })
+              }
+            />
+            <div className="form-actions">
+              <button
+                className="btn btn-success"
+                onClick={handleAddRoom}
+                disabled={loading.form}
+              >
+                {loading.form ? "Đang xử lý..." : "Lưu"}
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => setShowForm(false)}
+                disabled={loading.form}
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal && selectedRoom && (
+        <div
+          className="modal-overlay-admin"
+          onClick={() => setShowModal(false)}
+        >
+          <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>Chi tiết phòng {selectedRoom.roomNumber}</h4>
+              <button
+                className="close-btn"
+                onClick={() => setShowModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="room-info">
                 <p>
-                  <strong>Tầng:</strong> {room.floor}
+                  <strong>Số phòng:</strong>{" "}
+                  <span>{selectedRoom.roomNumber || "Chưa có thông tin"}</span>
                 </p>
                 <p>
-                  <strong>Số người:</strong> {room.peopleCount} người
+                  <strong>Tầng:</strong>{" "}
+                  <span>{selectedRoom.floor ?? "Chưa có thông tin"}</span>
                 </p>
-                <button
-                  className="btn btn-light"
-                  onClick={() => handleShowModal(room)}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  &#x22EE;
-                </button>
-                <button
-                  className="btn btn-light"
-                  onClick={() => deleteRoom(room.id)}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  &#x1F5D1;
-                </button>
-                <button
-                  className="btn btn-light"
-                  onClick={() => showRoomUser(room)}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  &#x1F465;
-                </button>
-                <button
-                  className="btn btn-light"
-                  onClick={() => handleOpenAddUser(room.roomNumber)}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  &#x2795;
-                </button>
-                {showTooltip && (
-                  <div
-                    className="tooltip"
-                    style={{
-                      left: `${tooltipPosition.x + 10}px`,
-                      top: `${tooltipPosition.y + 10}px`,
-                    }}
-                  >
-                    Thông tin
-                  </div>
-                )}
+                <p>
+                  <strong>Số người:</strong>{" "}
+                  <span>{selectedRoom.peopleCount ?? "Chưa có thông tin"}</span>
+                </p>
               </div>
             </div>
-          ))}
+          </div>
         </div>
+      )}
 
-        {showForm && (
-          <div className="form-overlay">
-            <div className="form-content">
-              <h3>Thêm phòng</h3>
-              {error && <div className="error-message">{error}</div>}
+      {showUserModal && (
+        <div
+          className="modal-overlay-admin"
+          onClick={() => setShowUserModal(false)}
+        >
+          <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>Danh sách người dùng</h4>
+              <button
+                className="close-btn"
+                onClick={() => setShowUserModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              {roomUsers.length > 0 ? (
+                <ul className="user-list">
+                  {roomUsers.map((username, index) => (
+                    <li className="user-item" key={index}>
+                      <div className="user-info">
+                        <p className="user-name">
+                          <strong className="user-name">Tên:</strong> {username}
+                        </p>
+                      </div>
+                      <button
+                        className="remove-user-btn"
+                        onClick={() => handleRemoveUser(selectedRoom.id, selectedRoom.userIds[index])}
+                      >
+                        👤❌
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-users">
+                  Không có người dùng nào trong phòng này
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUserInputModal && (
+        <div
+          className="modal-overlay-admin"
+          onClick={() => setShowUserInputModal(false)}
+        >
+          <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>Thêm người dùng vào phòng {selectedRoomNumber}</h4>
+              <button
+                className="close-btn"
+                onClick={() => setShowUserInputModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
               <input
                 type="text"
-                placeholder="Số phòng"
-                value={newRoom.roomNumber}
-                onChange={(e) =>
-                  setNewRoom({ ...newRoom, roomNumber: e.target.value })
-                }
+                placeholder="Nhập username"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                className="form-control mb-3"
               />
-              <input
-                type="number"
-                placeholder="Tầng"
-                value={newRoom.floor}
-                onChange={(e) =>
-                  setNewRoom({ ...newRoom, floor: e.target.value })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Sức chứa"
-                value={newRoom.peopleCount}
-                onChange={(e) =>
-                  setNewRoom({ ...newRoom, peopleCount: e.target.value })
-                }
-              />
+              {error && <div className="alert alert-danger">{error}</div>}
               <div className="form-actions">
-                <button
-                  className="btn btn-success"
-                  onClick={handleAddRoom}
-                  disabled={loading.form}
-                >
-                  {loading.form ? "Đang xử lý..." : "Lưu"}
+                <button className="btn btn-success" onClick={addRoomUser}>
+                  Thêm
                 </button>
                 <button
                   className="btn btn-danger"
-                  onClick={() => setShowForm(false)}
-                  disabled={loading.form}
+                  onClick={() => setShowUserInputModal(false)}
                 >
                   Hủy
                 </button>
               </div>
             </div>
           </div>
-        )}
-
-        {showModal && selectedRoom && (
-          <div
-            className="modal-overlay-admin"
-            onClick={() => setShowModal(false)}
-          >
-            <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h4>Chi tiết phòng {selectedRoom.roomNumber}</h4>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowModal(false)}
-                >
-                  &times;
-                </button>
-              </div>
-              <div className="modal-body">
-                <div className="room-info">
-                  <p>
-                    <strong>Số phòng:</strong>{" "}
-                    <span>{selectedRoom.roomNumber || "Chưa có thông tin"}</span>
-                  </p>
-                  <p>
-                    <strong>Tầng:</strong>{" "}
-                    <span>{selectedRoom.floor ?? "Chưa có thông tin"}</span>
-                  </p>
-                  <p>
-                    <strong>Số người:</strong>{" "}
-                    <span>{selectedRoom.peopleCount ?? "Chưa có thông tin"}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showUserModal && (
-          <div
-            className="modal-overlay-admin"
-            onClick={() => setShowUserModal(false)}
-          >
-            <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h4>Danh sách người dùng</h4>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowUserModal(false)}
-                >
-                  &times;
-                </button>
-              </div>
-              <div className="modal-body">
-              {roomUsers.length > 0 ? (
-    <ul className="user-list">
-      {roomUsers.map((username, index) => (
-        <li className="user-item" key={index}>
-          <div className="user-info">
-            <p className="user-name">
-              <strong className="user-name">Tên:</strong> {username}
-            </p>
-          </div>
-          <button
-            className="remove-user-btn"
-            onClick={() => handleRemoveUser(selectedRoom.id, selectedRoom.userIds[index])}
-          >
-            👤❌
-          </button>
-        </li>
-      ))}
-    </ul>
-) : 
- (
-    <p className="no-users">
-      Không có người dùng nào trong phòng này
-    </p>
-  )}
-</div>
-
-            </div>
-          </div>
-        )}
-
-        {showUserInputModal && (
-          <div
-            className="modal-overlay-admin"
-            onClick={() => setShowUserInputModal(false)}
-          >
-            <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h4>Thêm người dùng vào phòng {selectedRoomNumber}</h4>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowUserInputModal(false)}
-                >
-                  &times;
-                </button>
-              </div>
-              <div className="modal-body">
-                <input
-                  type="text"
-                  placeholder="Nhập username"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  className="form-control mb-3"
-                />
-                {error && <div className="alert alert-danger">{error}</div>}
-                <div className="form-actions">
-                  <button className="btn btn-success" onClick={addRoomUser}>
-                    Thêm
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => setShowUserInputModal(false)}
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

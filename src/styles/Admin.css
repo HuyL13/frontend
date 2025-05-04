@@ -1,10 +1,15 @@
 /* Global Styles */
 body, html {
   margin: 0;
+  margin-left:100px;
+  width:100vw;
+  margin-top:5vh;
   padding: 0;
   font-family: Arial, sans-serif;
 }
-
+.card,.table-card{
+  width:90vw;
+}
 /* Admin Overlay and Layout */
 .admin-overlay-1,
 .admin-layout-1 {

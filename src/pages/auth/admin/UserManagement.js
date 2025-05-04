@@ -338,81 +338,117 @@ const UserManagement = () => {
         </div>
       )}
 
-      <div className="admin-layout">
-        <h2 className="name">Danh sách người dùng</h2>
-        <button 
-          className="add-button btn btn-add"
-          onClick={() => setShowCreateModal(true)}
-        >
-          Add New User
-        </button>
-
-        <div className="user-list">
-          {Array.isArray(users) && users.length > 0 ? users.map(user => (
-            <div key={user.id} className="user-card">
-              <div className="user-info">
-                <h4>{user.username}</h4>
-                <p>{user.firstName} {user.lastName}</p>
-                <p>{user.email}</p>
-              </div>
-              <div className="user-actions">
-                <button 
-                  className="btn btn-info"
-                  onClick={() => {
-                    setSelectedUser(user);
-                    setShowDetailModal(true);
-                  }}
-                >
-                  &#128269;
-                </button>
-                <button
-  className="btn btn-edit"
-  onClick={() => {
-    setSelectedUser(user);
-    setEditUser({
-      password: "", // Thêm trường password
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      dob: user.dob && user.dob !== "N/A" && isValidDate(user.dob)
-        ? new Date(user.dob).toISOString().split('T')[0]
-        : ""
-    });
-    setShowEditModal(true);
-  }}
->
-  &#128394;
-</button>
-{userInfo.roles &&
-  Array.isArray(userInfo.roles) &&
-  userInfo.roles.length === 1 &&
-  userInfo.roles[0].name==="ADMIN" && (
-   
-    <button
-      className="btn btn-danger"
-      onClick={() => deleteUser(user.id)}
+<div>
+  <div className="d-flex justify-content-end mb-3">
+    <button 
+      className="btn btn-primary" 
+      onClick={() => setShowCreateModal(true)}
     >
-      &#128465;
+      <i className="ik ik-plus mr-1"></i> Add New User
     </button>
-    
-)}
+  </div>
 
-                <button
-                  className="btn btn-danger"
-                  onClick={() => {
-                    setSelectedUser(user);
-                    setShowMakeAdminModal(true);
-                  }}
-                >
-                  &#8648;
+  <div className="card table-card">
+    <div className="card-header">
+      <h3>Danh sách người dùng</h3>
+      <div className="card-header-right">
+        <ul className="list-unstyled card-option">
+          <li><i className="ik ik-chevron-left action-toggle"></i></li>
+          <li><i className="ik ik-minus minimize-card"></i></li>
+          <li><i className="ik ik-x close-card"></i></li>
+        </ul>
+      </div>
+    </div>
+    <div className="card-block">
+      <div className="table-responsive">
+        <table className="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Họ & Tên</th>
+              <th>Email</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.isArray(users) && users.length > 0 ? (
+              users.map(user => (
+                <tr key={user.id}>
+                  <td>{user.username}</td>
+                  <td>{user.firstName} {user.lastName}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <div className="btn-group">
+                      <button
+                        className="btn btn-icon"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowDetailModal(true);
+                        }}
+                        title="Xem chi tiết"
+                      >
+                        <i className="ik ik-info f-16 text-primary" />
+                      </button>
+                      <button
+                        className="btn btn-icon"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setEditUser({
+                            password: "",
+                            email: user.email,
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            dob:
+                              user.dob && user.dob !== "N/A" && isValidDate(user.dob)
+                                ? new Date(user.dob).toISOString().split("T")[0]
+                                : ""
+                          });
+                          setShowEditModal(true);
+                        }}
+                        title="Chỉnh sửa"
+                      >
+                        <i className="ik ik-edit f-16 text-success" />
+                      </button>
+                      {userInfo.roles &&
+                        Array.isArray(userInfo.roles) &&
+                        userInfo.roles.length === 1 &&
+                        userInfo.roles[0].name === "ADMIN" && (
+                          <button
+                            className="btn btn-icon"
+                            onClick={() => deleteUser(user.id)}
+                            title="Xóa người dùng"
+                          >
+                            <i className="ik ik-trash-2 f-16 text-danger" />
+                          </button>
+                        )}
+                      <button
+                        className="btn btn-icon"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowMakeAdminModal(true);
+                        }}
+                        title="Đặt làm ADMIN"
+                      >
+                        <i className="ik ik-award f-16 text-warning" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="text-center">
+                  Không có người dùng
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
-                </button>
-              </div>
-            </div>
-          )) : (
-            <p>No users found</p>
-          )}
-        </div>
 
         {/* Modal tạo user */}
         {showCreateModal && (
@@ -622,7 +658,7 @@ const UserManagement = () => {
     </div>
   </div>
 )}
-      </div>
+      
     </div>
   );
 };
