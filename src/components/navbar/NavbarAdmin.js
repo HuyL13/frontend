@@ -331,6 +331,27 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                   </NavLink>
                 </div>
 
+                <div className="nav-item active">
+                  <NavLink to="admin/notis" className="nav-link">
+                    <i className="ik ik-bell" ></i>
+                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Thông báo</span>
+                  </NavLink>
+                </div>
+
+                <div className="nav-item active">
+                  <NavLink to="admin/contribute" className="nav-link">
+                    <i className="ik ik-heart" ></i>
+                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Đóng góp</span>
+                  </NavLink>
+                </div>
+
+                <div className="nav-item active">
+                  <NavLink to="admin/vehicle" className="nav-link">
+                    <i className="ik ik-star" ></i>
+                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Bãi đỗ xe</span>
+                  </NavLink>
+                </div>
+
                 <div className={`nav-item has-sub ${showAdminDropdown ? 'open' : ''}`}
                   onMouseEnter={() => !isMobile && setShowAdminDropdown(true)}
                   onMouseLeave={() => !isMobile && setShowAdminDropdown(false)}>
@@ -348,6 +369,14 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                     <NavLink to="/admin/guests" className="menu-item">Phê duyệt</NavLink>
                     <NavLink to="/admin/reports" className="menu-item">Báo cáo</NavLink>
                   </div>
+                </div>
+
+
+                <div className="nav-item active">
+                  <NavLink to="admin/complain" className="nav-link">
+                    <i className="ik ik-headphones" ></i>
+                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Khiếu nại</span>
+                  </NavLink>
                 </div>
 
                 <div className="nav-lavel" style={!sidebarOpen ? {display: 'none'} : {}}>Cài đặt</div>

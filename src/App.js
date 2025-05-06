@@ -10,6 +10,10 @@ import Admin from "./pages/auth/admin/Admin";
 import UserManagement from "./pages/auth/admin/UserManagement";
 import GuestManagement from "./pages/auth/admin/GuestManagement";
 import FeeManagement from "./pages/auth/admin/FeeManagement";
+import Notifications from "./pages/auth/admin/Notifications";
+import Complain from "./pages/auth/admin/Complain";
+import Contribute from "./pages/auth/admin/Contribute";
+import Vehicle from "./pages/auth/admin/Vehicle";
 
 import Guest from "./pages/auth/guest/Guest";
 import Resident from "./pages/auth/resident/Resident";
@@ -50,6 +54,10 @@ function App() {
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/guests" element={<GuestManagement />} />
           <Route path="/admin/fees" element={<FeeManagement />} />
+          <Route path="/admin/notis" element={<Notifications />} />
+          <Route path="/admin/complain" element={<Complain />} />
+          <Route path="/admin/contribute" element={<Contribute />} />
+          <Route path="/admin/vehicle" element={<Vehicle />} />
 
           <Route path="/resident" element={<Resident />} />
         </Route>

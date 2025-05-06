@@ -113,6 +113,7 @@ const Admin = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch("http://localhost:22986/demo/admin/room", {
+        method:"GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
@@ -122,7 +123,7 @@ const Admin = () => {
       const data = await response.json();
       console.log("có id ko", data);
       setFullRoom(data);
-      const formattedRooms = data.map((room) => ({
+      const formattedRooms = data.content.map((room) => ({
         ...room,
         floor: room.floor ?? "Chưa cập nhật",
         peopleCount: room.peopleCount ?? "Chưa cập nhật",
