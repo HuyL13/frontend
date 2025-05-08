@@ -1,103 +1,136 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  Table, Button, Modal, Form, Input, Select, Tag, Spin, message,
+  Tooltip, Card, Divider, Row, Col, Typography, Descriptions, Statistic
+} from 'antd';
+import {
+  ExclamationCircleOutlined, ReloadOutlined, PlusOutlined,
+  EditOutlined, DeleteOutlined, InfoCircleOutlined, CrownOutlined,
+  SearchOutlined, UserOutlined, HomeOutlined, TeamOutlined, GlobalOutlined
+} from '@ant-design/icons';
 import "../../../styles/Admin.css";
-import "../../../styles/UserManagement.css";
 
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 const UserManagement = () => {
-  const [users, setUsers] = useState([]); // Khởi tạo state users là mảng rỗng
+  // States
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedResidency, setSelectedResidency] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMakeAdminModal, setShowMakeAdminModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [userInfo, setUserInfo] =useState(null); 
+  const [userInfo, setUserInfo] = useState(null);
+  const [statistics, setStatistics] = useState({
+    THUONG_TRU: 0,
+    TAM_TRU: 0,
+    TAM_VANG: 0,
+    total: 0
+  });
   const [loading, setLoading] = useState({
     initial: true,
     page: false,
     form: false
   });
-  const [error, setError] = useState("");
-  const [newUser, setNewUser] = useState({
-    id:"",
-    username: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    dob: "",
-    roles: ""
-  });
-  const [editUser, setEditUser] = useState({
-    email: "",
-    firstName: "",
-    lastName: "",
-    password: "", // Thêm trường password
-  dob: "" // Thêm trường ngày sinh
-  });
 
-  // Effect cho loading ban đầu
+  // Use ref to track selected residency to avoid stale closure issues
+  const selectedResidencyRef = useRef(selectedResidency);
+  selectedResidencyRef.current = selectedResidency;
+
+  const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
+
+  // Residency status options
+  const residencyOptions = [
+    { value: "THUONG_TRU", label: "Thường trú" },
+    { value: "TAM_TRU", label: "Tạm trú" },
+    { value: "TAM_VANG", label: "Tạm vắng" }
+  ];
+
+  // Initial loading effect
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(prev => ({ ...prev, initial: false }));
     }, 1500);
-    
     return () => clearTimeout(timer);
   }, []);
 
-  
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(prev => ({ ...prev, page: true }));
-      try {
-        const token = localStorage.getItem("authToken");
-        const response = await fetch("http://localhost:22986/demo/users/admin", {
-          method: "GET",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-  
-        // Xử lý response theo cấu trúc {code, result}
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-        }
-  
-        const data = await response.json();
-        
-        // Kiểm tra cấu trúc response
-        if (data.code !== 0) {
-          throw new Error(data.message || "Server returned error code");
-        }
-  
-        // Lấy danh sách users từ trường result
-        const receivedUsers = data.result || [];
-        
-        if (!Array.isArray(receivedUsers)) {
-          throw new Error("Invalid users data format from server");
-        }
-  
-        // Format lại dữ liệu để xử lý các trường null
-        const formattedUsers = receivedUsers.map(user => ({
-          ...user,
-          firstName: user.firstName || "N/A",
-          lastName: user.lastName || "N/A",
-          dob: user.dob ? new Date(user.dob).toLocaleDateString() : "N/A"
-        }));
-  
-        setUsers(formattedUsers);
-        setError("");
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setError(error.message);
-        setUsers([]); // Đảm bảo luôn là array
-      } finally {
-        setLoading(prev => ({ ...prev, page: false }));
-      }
+  // Calculate statistics
+  const calculateStatistics = (userData) => {
+    const stats = {
+      THUONG_TRU: 0,
+      TAM_TRU: 0, 
+      TAM_VANG: 0,
+      total: userData.length
     };
-  
+    
+    userData.forEach(user => {
+      if (user.residencyStatus && stats[user.residencyStatus] !== undefined) {
+        stats[user.residencyStatus]++;
+      }
+    });
+    
+    setStatistics(stats);
+  };
+
+  // Fetch users data
+  const fetchUsers = async () => {
+    setLoading(prev => ({ ...prev, page: true }));
+    try {
+      const token = localStorage.getItem("authToken");
+      // Use different endpoint if filtering by residency status
+      let url = "http://localhost:22986/demo/users/admin";
+      if (selectedResidencyRef.current) {
+        url = `http://localhost:22986/demo/users/admin/user/${selectedResidencyRef.current}`;
+      }
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (data.code !== 0) {
+        throw new Error(data.message || "Server returned error code");
+      }
+      const receivedUsers = data.result || [];
+      
+      if (!Array.isArray(receivedUsers)) {
+        throw new Error("Invalid users data format from server");
+      }
+      const formattedUsers = receivedUsers.map(user => ({
+        ...user,
+        firstName: user.firstName || "N/A",
+        lastName: user.lastName || "N/A",
+        dob: user.dob ? new Date(user.dob).toLocaleDateString() : "N/A",
+        residencyStatus: user.residencyStatus || "N/A",
+        key: user.id // Adding key for Ant Design Table
+      }));
+      setUsers(formattedUsers);
+      setFilteredUsers(formattedUsers);
+      calculateStatistics(formattedUsers);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      message.error(`Failed to fetch users: ${error.message}`);
+      setUsers([]);
+      setFilteredUsers([]);
+    } finally {
+      setLoading(prev => ({ ...prev, page: false }));
+    }
+  };
+
+  // Effect to fetch users on initial load and periodically
+  useEffect(() => {
     if (!loading.initial) {
       fetchUsers();
       const intervalId = setInterval(fetchUsers, 100000);
@@ -105,9 +138,29 @@ const UserManagement = () => {
     }
   }, [loading.initial]);
 
+  // Effect to refetch when residency filter changes
+  useEffect(() => {
+    if (!loading.initial) {
+      fetchUsers();
+    }
+  }, [selectedResidency]);
 
-  // Tạo user mới
-  const createUser = async (userData) => {
+  // Search functionality
+  const handleSearch = (value) => {
+    const lowerCaseValue = value.toLowerCase();
+    const filtered = users.filter(user =>
+      Object.values(user).some(
+        val => val && val.toString().toLowerCase().includes(lowerCaseValue)
+      ) ||
+      user.roles?.some(role =>
+        role.name.toLowerCase().includes(lowerCaseValue)
+      )
+    );
+    setFilteredUsers(filtered);
+  };
+
+  // Create new user
+  const createUser = async (values) => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch("http://localhost:22986/demo/users", {
@@ -117,68 +170,101 @@ const UserManagement = () => {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-            username: userData.username,
-            password: userData.password,
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName
-          }
-          )
+          username: values.username,
+          password: values.password,
+          email: values.email,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          dob: values.dob,
+          residencyStatus: values.residencyStatus
+        })
       });
-
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Create user failed");
-      return data;
+      console.log(data);
+      if (data.code !== 0) {
+        throw new Error(data.message || "Create user failed");
+      }
+      
+      message.success("User created successfully");
+      return data.result;
     } catch (error) {
       throw error;
     }
   };
 
-  // Xử lý thêm user
+  // Handle create user form submission
   const handleCreateUser = async () => {
-    const requiredFields = ['username', 'password', 'email', 'firstName', 'lastName'];
-    if (requiredFields.some(field => !newUser[field])) {
-      setError("Please fill all required fields");
-      return;
-    }
-
-    setLoading(prev => ({ ...prev, form: true }));
     try {
-      const createdUser = await createUser(newUser);
+      setLoading(prev => ({ ...prev, form: true }));
+      const values = await createForm.validateFields();
+      const createdUser = await createUser(values);
       setUsers([...users, createdUser]);
+      setFilteredUsers([...filteredUsers, createdUser]);
       setShowCreateModal(false);
-      setNewUser({ username: "", password: "", email: "", firstName: "", lastName: "" });
-      setError("");
+      createForm.resetFields();
     } catch (error) {
-      setError(error.message);
+      if (error.errorFields) {
+        // Form validation error
+        return;
+      }
+      message.error(`Failed to create user: ${error.message}`);
     } finally {
       setLoading(prev => ({ ...prev, form: false }));
     }
   };
-  const isValidDate = (dateString) => {
-    return !isNaN(new Date(dateString).getTime());
-  };
-  
-  // Xóa user
+
+  // Delete user
   const deleteUser = async (userId) => {
     try {
+      console.log("xóa");
       const token = localStorage.getItem("authToken");
       const response = await fetch(`http://localhost:22986/demo/users/admin/${userId}`, {
         method: "DELETE",
         headers: {
-            "Content-Type": "application/json",
+          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         }
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Delete failed");
+      }
       
-      if (!response.ok) throw new Error("Delete failed");
       setUsers(users.filter(user => user.id !== userId));
+      setFilteredUsers(filteredUsers.filter(user => user.id !== userId));
+      message.success("User deleted successfully");
     } catch (error) {
-      setError(error.message);
+      message.error(`Failed to delete user: ${error.message}`);
     }
   };
 
-  const updateUser = async (userId, updateData) => {
+  // Fetch user details by ID
+  const fetchUserDetails = async (userId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(`http://localhost:22986/demo/users/admin/${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.code !== 0) {
+        throw new Error(data.message || "Failed to fetch user details");
+      }
+      return data.result;
+    } catch (error) {
+      message.error(`Failed to fetch user details: ${error.message}`);
+      return null;
+    }
+  };
+
+  // Update user
+  const updateUser = async (userId, values) => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(`http://localhost:22986/demo/users/${userId}`, {
@@ -189,76 +275,56 @@ const UserManagement = () => {
           "Accept": "application/json"
         },
         body: JSON.stringify({
-          password: updateData.password,
-          firstName: updateData.firstName,
-          lastName: updateData.lastName,
-          email: updateData.email,
-          dob: updateData.dob
+          password: values.password,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          dob: values.dob,
+          email: values.email,
+          residencyStatus: values.residencyStatus
         })
       });
-  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Update failed");
       }
       
       const data = await response.json();
-      console.log("Update user response: ", data);
-      return data;
+      message.success("User updated successfully");
+      return data.result;
     } catch (error) {
       throw error;
     }
   };
-  
 
-  // Xử lý cập nhật
+  // Handle update user form submission
   const handleUpdateUser = async () => {
     if (!selectedUser) return;
-
-    setLoading(prev => ({ ...prev, form: true }));
     try {
-      const updatedUser = await updateUser(selectedUser.id, editUser);
-      setUsers(users.map(user => 
+      setLoading(prev => ({ ...prev, form: true }));
+      const values = await editForm.validateFields();
+      const updatedUser = await updateUser(selectedUser.id, values);
+      
+      // Update both users and filteredUsers arrays
+      const updateUserInArray = (array) => array.map(user => 
         user.id === selectedUser.id ? { ...user, ...updatedUser } : user
-      ));
+      );
+      
+      setUsers(updateUserInArray(users));
+      setFilteredUsers(updateUserInArray(filteredUsers));
+      
       setShowEditModal(false);
-      setError("");
     } catch (error) {
-      setError(error.message);
+      if (error.errorFields) {
+        // Form validation error
+        return;
+      }
+      message.error(`Failed to update user: ${error.message}`);
     } finally {
       setLoading(prev => ({ ...prev, form: false }));
     }
   };
 
-  
-  const fetchUserDetail = async (userId) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:22986/demo/users/admin/${userId}`, {
-        method: "GET",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      
-      if (data.code !== 0) {
-        throw new Error(data.message || "Server returned error code");
-      }
-  
-      return data.result;
-    } catch (error) {
-      throw new Error(`Failed to fetch user details: ${error.message}`);
-    }
-  };
-
+  // Make user admin
   const makeAdmin = async (userId) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -272,393 +338,558 @@ const UserManagement = () => {
           },
         }
       );
-  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to make admin");
       }
-  
-      // Cập nhật role trong state
-      setUsers(users.map(user => 
+      // Update both users and filteredUsers arrays
+      const updateRolesInArray = (array) => array.map(user => 
         user.id === userId 
-          ? { ...user, roles: [...user.roles, { name: "ADMIN" }] } 
+          ? { ...user, roles: [...(user.roles || []), { name: "ADMIN" }] }
           : user
-      ));
+      );
+      
+      setUsers(updateRolesInArray(users));
+      setFilteredUsers(updateRolesInArray(filteredUsers));
       
       setShowMakeAdminModal(false);
-      setError("");
+      message.success("User promoted to admin successfully");
     } catch (error) {
-      setError(error.message);
+      message.error(`Failed to make admin: ${error.message}`);
     }
   };
 
-  //fetch
-
+  // Fetch user info
   useEffect(() => {
-      const fetchUserInfo = async () => {
-        try {
-          const token = localStorage.getItem('authToken');
-          const response = await fetch('http://localhost:22986/demo/users/my-info', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          console.log("1");
-          
-          console.log("1");
-          const data = await response.json();
-          console.log(data);
-          if (data.code !== 0) {
-            throw new Error('Lỗi trong response API');
+    const fetchUserInfo = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('http://localhost:22986/demo/users/my-info', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-  
-          setUserInfo(data.result);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
+        });
+        const data = await response.json();
+        
+        if (data.code !== 0) {
+          throw new Error('Lỗi trong response API');
         }
-      };
-  
-      fetchUserInfo();
-    }, []);
+        setUserInfo(data.result);
+      } catch (err) {
+        message.error(`Failed to fetch user info: ${err.message}`);
+      }
+    };
+    fetchUserInfo();
+  }, []);
+
+  // Helper function to get residency status display name
+  const getResidencyStatusLabel = (value) => {
+    const option = residencyOptions.find(opt => opt.value === value);
+    return option ? option.label : value;
+  };
+
+  // Table columns configuration
+  const columns = [
+    {
+      title: 'Username',
+      dataIndex: 'username',
+      key: 'username',
+      sorter: (a, b) => a.username.localeCompare(b.username)
+    },
+    {
+      title: 'Họ & Tên',
+      key: 'fullName',
+      render: (_, record) => `${record.firstName} ${record.lastName}`,
+      sorter: (a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+      sorter: (a, b) => a.email.localeCompare(b.email)
+    },
+    {
+      title: 'Tình trạng cư trú',
+      dataIndex: 'residencyStatus',
+      key: 'residencyStatus',
+      render: (status) => getResidencyStatusLabel(status)
+    },
+    {
+      title: 'Vai trò',
+      key: 'roles',
+      render: (_, record) => (
+        <>
+          {record.roles?.map(role => (
+            <Tag color={role.name === "ADMIN" ? "red" : "green"} key={role.name}>
+              {role.name}
+            </Tag>
+          ))}
+        </>
+      )
+    },
+    {
+      title: 'Hành động',
+      key: 'action',
+      render: (_, record) => (
+        <div className="action-buttons">
+          <Tooltip title="Chi tiết">
+            <Button
+              type="primary"
+              icon={<InfoCircleOutlined />}
+              size="small"
+              onClick={() => {
+                setSelectedUser(record);
+                setShowDetailModal(true);
+              }}
+            />
+          </Tooltip>
+          
+          <Tooltip title="Chỉnh sửa">
+            <Button
+              type="default"
+              icon={<EditOutlined />}
+              size="small"
+              style={{ marginLeft: 8 }}
+              onClick={async () => {
+                setSelectedUser(record);
+                console.log("a");
+                console.log(record);
+                // Fetch detailed user data for editing
+                console.log(record.id);
+                const userDetails = await fetchUserDetails(record.id);
+                console.log(userDetails);
+                if (userDetails) {
+                  // Format date properly for input type="date"
+                  let formattedDate = '';
+                  if (userDetails.dob && userDetails.dob !== "N/A") {
+                    const date = new Date(userDetails.dob);
+                    formattedDate = date.toISOString().split('T')[0];
+                  }
+                  
+                  editForm.setFieldsValue({
+                    email: userDetails.email || record.email,
+                    firstName: userDetails.firstName || record.firstName,
+                    lastName: userDetails.lastName || record.lastName,
+                    password: '',
+                    dob: formattedDate,
+                    residencyStatus: userDetails.residencyStatus || record.residencyStatus || 'THUONG_TRU'
+                  });
+                }
+                setShowEditModal(true);
+              }}
+            />
+          </Tooltip>
+          
+          {userInfo && userInfo.roles &&
+          Array.isArray(userInfo.roles) &&
+          userInfo.roles.some(role => role.name === "ADMIN") && (
+            <Tooltip title="Xóa">
+              <Button
+                type="danger"
+                icon={<DeleteOutlined />}
+                size="small"
+                style={{ marginLeft: 8 }}
+                onClick={() => deleteUser(record.id)}
+              />
+            </Tooltip>
+          )}
+          
+          {userInfo && userInfo.roles &&
+          Array.isArray(userInfo.roles) &&
+          userInfo.roles.some(role => role.name === "ADMIN") &&
+          !record.roles?.some(role => role.name === "ADMIN") && (
+            <Tooltip title="Đặt làm admin">
+              <Button
+                type="default"
+                icon={<CrownOutlined />}
+                size="small"
+                style={{ marginLeft: 8 }}
+                onClick={() => {
+                  setSelectedUser(record);
+                  setShowMakeAdminModal(true);
+                }}
+              />
+            </Tooltip>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  // Render the component
   return (
-    <div className="admin-overlay">
-      {loading.initial && (
-        <div className="initial-loading">
-          <div className="spinner"></div>
+    <div className="user-management-container">
+      {loading.initial ? (
+        <div className="loading-spinner">
+          <Spin size="large" />
+          <p>Đang tải dữ liệu...</p>
         </div>
+      ) : (
+        <>
+          {/* Statistics Cards */}
+          <Row gutter={16} className="stats-row">
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Tổng người dùng"
+                  value={statistics.total}
+                  prefix={<TeamOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Thường trú"
+                  value={statistics.THUONG_TRU}
+                  prefix={<HomeOutlined />}
+                  valueStyle={{ color: '#3f8600' }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Tạm trú"
+                  value={statistics.TAM_TRU}
+                  prefix={<UserOutlined />}
+                  valueStyle={{ color: '#1890ff' }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Tạm vắng"
+                  value={statistics.TAM_VANG}
+                  prefix={<GlobalOutlined />}
+                  valueStyle={{ color: '#faad14' }}
+                />
+              </Card>
+            </Col>
+          </Row>
+
+          <Card 
+            title={
+              <Title level={4}>
+                <UserOutlined /> Quản lý người dùng
+              </Title>
+            }
+            className="user-table-card"
+            extra={
+              <div className="card-actions">
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    createForm.resetFields();
+                    setShowCreateModal(true);
+                  }}
+                  style={{ marginRight: 8 }}
+                >
+                  Thêm người dùng
+                </Button>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={fetchUsers}
+                >
+                  Làm mới
+                </Button>
+              </div>
+            }
+            actions={[
+              <div className="card-footer">
+                <Input
+                  prefix={<SearchOutlined />}
+                  placeholder="Tìm kiếm người dùng..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    handleSearch(e.target.value);
+                  }}
+                  allowClear
+                  style={{ width: 250, marginRight: 8 }}
+                />
+                <Select
+                  placeholder="Lọc theo tình trạng"
+                  allowClear
+                  style={{ width: 200 }}
+                  onChange={(value) => setSelectedResidency(value)}
+                >
+                  {residencyOptions.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+            ]}
+          >
+            <Table 
+              dataSource={filteredUsers} 
+              columns={columns} 
+              loading={loading.page}
+              pagination={{ 
+                pageSize: 10,
+                showTotal: (total) => `Tổng ${total} người dùng`
+              }}
+              bordered
+              scroll={{ x: 1300 }}
+            />
+          </Card>
+        </>
       )}
 
-      {loading.page && (
-        <div className="page-loading">
-          <div className="spinner"></div>
-          <p>Loading users...</p>
-        </div>
-      )}
-
-<div>
-  <div className="d-flex justify-content-end mb-3">
-    <button 
-      className="btn btn-primary" 
-      onClick={() => setShowCreateModal(true)}
-    >
-      <i className="ik ik-plus mr-1"></i> Add New User
-    </button>
-  </div>
-
-  <div className="card table-card">
-    <div className="card-header">
-      <h3>Danh sách người dùng</h3>
-      <div className="card-header-right">
-        <ul className="list-unstyled card-option">
-          <li><i className="ik ik-chevron-left action-toggle"></i></li>
-          <li><i className="ik ik-minus minimize-card"></i></li>
-          <li><i className="ik ik-x close-card"></i></li>
-        </ul>
-      </div>
-    </div>
-    <div className="card-block">
-      <div className="table-responsive">
-        <table className="table table-hover mb-0">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Họ & Tên</th>
-              <th>Email</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(users) && users.length > 0 ? (
-              users.map(user => (
-                <tr key={user.id}>
-                  <td>{user.username}</td>
-                  <td>{user.firstName} {user.lastName}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <div className="btn-group">
-                      <button
-                        className="btn btn-icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowDetailModal(true);
-                        }}
-                        title="Xem chi tiết"
-                      >
-                        <i className="ik ik-info f-16 text-primary" />
-                      </button>
-                      <button
-                        className="btn btn-icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setEditUser({
-                            password: "",
-                            email: user.email,
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            dob:
-                              user.dob && user.dob !== "N/A" && isValidDate(user.dob)
-                                ? new Date(user.dob).toISOString().split("T")[0]
-                                : ""
-                          });
-                          setShowEditModal(true);
-                        }}
-                        title="Chỉnh sửa"
-                      >
-                        <i className="ik ik-edit f-16 text-success" />
-                      </button>
-                      {userInfo.roles &&
-                        Array.isArray(userInfo.roles) &&
-                        userInfo.roles.length === 1 &&
-                        userInfo.roles[0].name === "ADMIN" && (
-                          <button
-                            className="btn btn-icon"
-                            onClick={() => deleteUser(user.id)}
-                            title="Xóa người dùng"
-                          >
-                            <i className="ik ik-trash-2 f-16 text-danger" />
-                          </button>
-                        )}
-                      <button
-                        className="btn btn-icon"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowMakeAdminModal(true);
-                        }}
-                        title="Đặt làm ADMIN"
-                      >
-                        <i className="ik ik-award f-16 text-warning" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="text-center">
-                  Không có người dùng
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-        {/* Modal tạo user */}
-        {showCreateModal && (
-          <div className="modal-overlay-admin" onClick={() => setShowCreateModal(false)}>
-            <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-              <h3>Create New User</h3>
-              {error && <div className="error-message">{error}</div>}
-              <input
-                type="text"
-                placeholder="Username"
-                value={newUser.username}
-                onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={newUser.password}
-                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="First Name"
-                value={newUser.firstName}
-                onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={newUser.lastName}
-                onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
-              />
-              <input
-        type="password"
-        placeholder="New Password"
-        value={newUser.password}
-        onChange={(e) => setEditUser({ ...editUser, password: e.target.value })}
-      />
-      
-      {/* Thêm trường ngày sinh */}
-      <input
-        type="date"
-        value={newUser.dob}
-        onChange={(e) => setEditUser({ ...editUser, dob: e.target.value })}
-      />
-              <div className="modal-actions">
-                <button
-                  className="btn btn-success"
-                  onClick={handleCreateUser}
-                  disabled={loading.form}
-                >
-                  {loading.form ? "Creating..." : "Create"}
-                </button>
-                <button
-                  className="btn btn-cancel"
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal chỉnh sửa */}
-        {showEditModal && selectedUser && (
-          <div className="modal-overlay-admin" onClick={() => setShowEditModal(false)}>
-            <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-              <h3>Edit User</h3>
-              {error && <div className="error-message">{error}</div>}
-              <input
-                type="email"
-                placeholder="Email"
-                value={editUser.email}
-                onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="First Name"
-                value={editUser.firstName}
-                onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={editUser.lastName}
-                onChange={(e) => setEditUser({ ...editUser, lastName: e.target.value })}
-              />
-              <input
-        type="password"
-        placeholder="Password"
-        value={editUser.password}
-        onChange={(e) => setEditUser({ ...editUser, password: e.target.value })} 
-      />
-      <input
-        type="date"
-        value={editUser.dob}
-        onChange={(e) => setEditUser({ ...editUser, dob: e.target.value })} 
-      />
-              <div className="modal-actions">
-                <button
-                  className="btn btn-success"
-                  onClick={handleUpdateUser}
-                  disabled={loading.form}
-                >
-                  {loading.form ? "Updating..." : "Update"}
-                </button>
-                <button
-                  className="btn btn-cancel"
-                  onClick={() => setShowEditModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-{showDetailModal && selectedUser && (
-  <div className="modal-overlay-admin" onClick={() => setShowDetailModal(false)}>
-    <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-      <h3>User Details</h3>
-      <div className="user-detail-content">
-        {loading.page ? (
-          <div className="loading-spinner"></div>
-        ) : (
-          <>
-            <div className="detail-row">
-              <span className="detail-label">ID:</span>
-              <span className="detail-value">{selectedUser.id}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Username:</span>
-              <span className="detail-value">{selectedUser.username}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Password:</span>
-              <span className="detail-value">{selectedUser.password}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Email:</span>
-              <span className="detail-value">{selectedUser.email}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Full Name:</span>
-              <span className="detail-value">
-                {selectedUser.firstName} {selectedUser.lastName}
-              </span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Date of Birth:</span>
-              <span className="detail-value">
-                {selectedUser.dob || "N/A"}
-              </span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Roles:</span>
-              <div className="role-tags">
-                {selectedUser.roles?.map((role) => (
-                  <span key={role.name} className="role-tag">
-                    {role.name}
-                  </span>
-                )) || "No roles"}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-      <button
-        className="btn btn-close"
-        onClick={() => setShowDetailModal(false)}
+      {/* Create User Modal */}
+      <Modal
+        title="Thêm người dùng mới"
+        open={showCreateModal}
+        onCancel={() => setShowCreateModal(false)}
+        footer={[
+          <Button key="back" onClick={() => setShowCreateModal(false)}>
+            Hủy
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={loading.form} 
+            onClick={handleCreateUser}
+          >
+            Tạo
+          </Button>
+        ]}
+        width={600}
       >
-        Close
-      </button>
-    </div>
-  </div>
-)}
+        <Form
+          form={createForm}
+          layout="vertical"
+          name="createUserForm"
+        >
+          <Form.Item
+            name="username"
+            label="Username"
+            rules={[{ required: true, message: 'Vui lòng nhập username!' }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Username" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Mật khẩu"
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+          >
+            <Input.Password />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="firstName"
+                label="Họ"
+                rules={[{ required: true, message: 'Vui lòng nhập họ!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="lastName"
+                label="Tên"
+                rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="dob"
+            label="Ngày sinh"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
+          >
+            <Input type="date" />
+          </Form.Item>
+          <Form.Item
+            name="residencyStatus"
+            label="Tình trạng cư trú"
+            rules={[{ required: true, message: 'Vui lòng chọn tình trạng cư trú!' }]}
+            initialValue="THUONG_TRU"
+          >
+            <Select>
+              {residencyOptions.map(option => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
 
-{/* Modal Make Admin */}
-{showMakeAdminModal && selectedUser && (
-  <div className="modal-overlay-admin" onClick={() => setShowMakeAdminModal(false)}>
-    <div className="modal-content-admin" onClick={(e) => e.stopPropagation()}>
-      <h3>Confirm Admin Promotion</h3>
-      <p>
-        Are you sure you want to make {selectedUser.username} ({selectedUser.email}) an admin?
-      </p>
-      {error && <div className="error-message">{error}</div>}
-      <div className="modal-actions">
-        <button
-          className="btn btn-warning"
-          onClick={() => makeAdmin(selectedUser.id)}
+      {/* Edit User Modal */}
+      <Modal
+        title="Chỉnh sửa thông tin người dùng"
+        open={showEditModal}
+        onCancel={() => setShowEditModal(false)}
+        footer={[
+          <Button key="back" onClick={() => setShowEditModal(false)}>
+            Hủy
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            loading={loading.form} 
+            onClick={handleUpdateUser}
+          >
+            Cập nhật
+          </Button>
+        ]}
+        width={600}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          name="editUserForm"
         >
-          Confirm
-        </button>
-        <button
-          className="btn btn-cancel"
-          onClick={() => setShowMakeAdminModal(false)}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-      
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Mật khẩu mới(Chỉ điền nếu cần đổi) "
+          >
+            <Input.Password />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="firstName"
+                label="Họ"
+                rules={[{ required: true, message: 'Vui lòng nhập họ!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="lastName"
+                label="Tên"
+                rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="dob"
+            label="Ngày sinh"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
+          >
+            <Input type="date" />
+          </Form.Item>
+          <Form.Item
+            name="residencyStatus"
+            label="Tình trạng cư trú"
+            rules={[{ required: true, message: 'Vui lòng chọn tình trạng cư trú!' }]}
+          >
+            <Select>
+              {residencyOptions.map(option => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* User Detail Modal */}
+      <Modal
+        title="Chi tiết người dùng"
+        open={showDetailModal}
+        onCancel={() => setShowDetailModal(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowDetailModal(false)}>
+            Đóng
+          </Button>
+        ]}
+      >
+        {selectedUser && (
+          <Descriptions bordered column={1}>
+            <Descriptions.Item label="ID">
+              {selectedUser.id}
+            </Descriptions.Item>
+            <Descriptions.Item label="Username">
+              {selectedUser.username}
+            </Descriptions.Item>
+            <Descriptions.Item label="Mật khẩu">
+              {selectedUser.password}
+            </Descriptions.Item>
+            <Descriptions.Item label="Email">
+              {selectedUser.email}
+            </Descriptions.Item>
+            <Descriptions.Item label="Họ">
+              {selectedUser.firstName}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tên">
+              {selectedUser.lastName}
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày sinh">
+              {selectedUser.dob}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tình trạng cư trú">
+              {getResidencyStatusLabel(selectedUser.residencyStatus)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Vai trò">
+              {selectedUser.roles?.map(role => (
+                <Tag color={role.name === "ADMIN" ? "red" : "green"} key={role.name}>
+                  {role.name}
+                </Tag>
+              ))}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
+
+      {/* Make Admin Modal */}
+      <Modal
+        title="Xác nhận đặt làm admin"
+        open={showMakeAdminModal}
+        onCancel={() => setShowMakeAdminModal(false)}
+        footer={[
+          <Button key="back" onClick={() => setShowMakeAdminModal(false)}>
+            Hủy
+          </Button>,
+          <Button 
+            key="submit" 
+            type="primary" 
+            onClick={() => makeAdmin(selectedUser?.id)}
+          >
+            Xác nhận
+          </Button>
+        ]}
+      >
+        {selectedUser && (
+          <p>
+            Bạn có chắc chắn muốn đặt {selectedUser.username} ({selectedUser.email}) làm admin?
+          </p>
+        )}
+      </Modal>
     </div>
   );
 };

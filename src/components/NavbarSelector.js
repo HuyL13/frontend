@@ -49,7 +49,7 @@ const NavbarSelector = () => {
   const navbarComponents = {
     admin: <NavbarAdmin handleLogout={handleLogout} />,
     user: <NavbarResident handleLogout={handleLogout} />,
-    user_admin: <NavbarUser_Admin handleLogout={handleLogout} />,
+    user_admin: <NavbarAdmin handleLogout={handleLogout} />,
     guest: <NavbarGuest handleLogout={handleLogout} />,
     default: <NavbarDefault />
   };

@@ -262,7 +262,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
             />
           </a>
           <div className="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-            <NavLink to="/profile" className="dropdown-item">
+            <NavLink to="/account" className="dropdown-item">
               <i className="ik ik-user"></i>
               <span>Profile</span>
             </NavLink>

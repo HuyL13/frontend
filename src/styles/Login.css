@@ -26,7 +26,6 @@ body {
   background-color: rgba(255, 255, 255, 0.95);
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(30px);
-  margin-top:15vh;
 }
 
 
@@ -72,6 +71,51 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
+.password-field {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.password-field input {
+  width: 100%;
+  height: 44px;
+  padding: 10px 60px 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: none;
+  background-color: #fff;
+}
+
+.password-field input:focus {
+  border-color: #80bdff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 600;
+  color: #007bff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-password:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
 
 .login-container button:hover:not(:disabled) {
   transform: translateY(-2px);

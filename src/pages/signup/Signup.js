@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "../../styles/Signup.css";
+
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -10,170 +11,159 @@ const Signup = () => {
     firstName: "",
     lastName: "",
     email: "",
-    dob: ""
+    dateOfBirth: "",
   });
-  const [message, setMessage] = useState({ type: "", content: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const validateForm = () => {
-    const { username, password, email, dob } = formData;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-
-    if (!username || !password || !email || !dob) {
-      setMessage({ type: "error", content: "Vui lòng điền đầy đủ thông tin" });
-      return false;
-    }
-
-    if (!emailRegex.test(email)) {
-      setMessage({ type: "error", content: "Email không hợp lệ" });
-      return false;
-    }
-
-    if (!passwordRegex.test(password)) {
-      setMessage({
-        type: "error",
-        content: "Mật khẩu cần ít nhất 8 ký tự, bao gồm chữ số và ký tự đặc biệt"
-      });
-      return false;
-    }
-
-    return true;
-  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
     setLoading(true);
+    setError("");
+
     try {
       const response = await fetch("http://localhost:22986/demo/users/create", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          dob: new Date(formData.dob).toISOString().split("T")[0]
-        })
+        body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || "Đăng ký thất bại");
       }
 
-      setMessage({
-        type: "success",
-        content: "Đăng ký thành công! Đang chuyển hướng..."
-      });
-
-      setTimeout(() => navigate("/login"), 2000);
-    } catch (error) {
-      setMessage({
-        type: "error",
-        content: error.message || "Có lỗi xảy ra khi đăng ký"
-      });
+      navigate("/login");
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="signup-container">
-      <h2 className ="signup-header">Đăng ký tài khoản</h2>
+    <div className="row g-0 auth-wrapper">
+      <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
+        <div className="auth-background-holder"></div>
+        <div className="auth-background-mask"></div>
+      </div>
 
-      {message.content && (
-        <div className={`alert ${message.type}`}>
-          {message.content}
-        </div>
-      )}
+      <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center">
+        <div className="d-flex flex-column align-content-end">
+          <div className="auth-body mx-auto">
+            <p>Đăng ký tài khoản</p>
+            <div className="auth-form-container text-start">
+              <form className="auth-form" onSubmit={handleSignup}>
+                {error && <div className="alert alert-danger">{error}</div>}
 
-      <form className="signup-form" onSubmit={handleSignup}>
-        <div className="form-group">
-          <label>Tên đăng nhập:</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Tên đăng nhập"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
 
-        <div className="form-group">
-          <label>Mật khẩu:</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
+                <div className="mb-3">
+                  <div className="password-field">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="form-control"
+                      placeholder="Mật khẩu"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      disabled={loading}
+                    />
+                    <span
+                      className="toggle-password"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? "Ẩn" : "Hiện"}
+                    </span>
+                  </div>
+                </div>
 
-        <div className="name-group">
-          <div className="form-group">
-            <label>Họ:</label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              required
-            />
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Họ"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Tên"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <input
+                    type="date"
+                    className="form-control"
+                    placeholder="Ngày sinh"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="text-center">
+                  <button
+                    type="submit"
+                    className="btn btn-primary w-100 theme-btn mx-auto"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                    ) : (
+                      "Đăng ký"
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              <hr />
+              <div className="auth-option text-center pt-2">
+                Đã có tài khoản?{" "}
+                <Link className="text-link" to="/login">
+                  Đăng nhập
+                </Link>
+              </div>
+            </div>
           </div>
-
-          <div className="form-group">
-            <label>Tên:</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
         </div>
-
-        <div className="form-group">
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Ngày sinh:</label>
-          <input
-            type="date"
-            name="dob"
-            value={formData.dob}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          className="submit-btn"
-          disabled={loading}
-        >
-          {loading ? "Đang xử lý..." : "Đăng ký"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

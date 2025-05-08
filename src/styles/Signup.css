@@ -64,6 +64,17 @@
   margin-bottom: 20px;
 }
 
+/* Icon Styles */
+.smile-icon {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.smile-icon i {
+  font-size: 24px;
+  color: #f39c12;
+}
+
 /* Button Styles */
 .submit-btn {
   width: 100%;
