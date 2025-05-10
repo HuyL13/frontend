@@ -19,9 +19,7 @@ import {
   notification,
   InputNumber,
   Tooltip,
-  Empty,
-  Tabs,
-  message
+  Empty,Tabs
 } from "antd";
 import {
   InfoCircleOutlined,
@@ -30,13 +28,13 @@ import {
   HomeOutlined,
   DeleteOutlined,
   EditOutlined,
-  TeamOutlined,
-  SearchOutlined
+  TeamOutlined
 } from "@ant-design/icons";
+
+import { SearchOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const { Text, Title } = Typography;
-const { TabPane } = Tabs;
 
 const Admin = () => {
   // State for managing rooms and UI
@@ -59,7 +57,6 @@ const Admin = () => {
   const [residentModalVisible, setResidentModalVisible] = useState(false);
   const [addResidentModalVisible, setAddResidentModalVisible] = useState(false);
   const [updateResidentModalVisible, setUpdateResidentModalVisible] = useState(false);
-  const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   
   // Loading states
   const [loading, setLoading] = useState({
@@ -81,16 +78,18 @@ const Admin = () => {
     total: 0
   });
   
-  // Search state
-  const [activeTabKey, setActiveTabKey] = useState('1');
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchPagination, setSearchPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0
-  });
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchCriteria, setSearchCriteria] = useState({});
+
+// Thêm vào component Admin
+const { TabPane } = Tabs;
+const [activeTabKey, setActiveTabKey] = useState('1');
+const [searchResults, setSearchResults] = useState([]);
+const [searchPagination, setSearchPagination] = useState({
+  current: 1,
+  pageSize: 10,
+  total: 0
+});
+const [searchLoading, setSearchLoading] = useState(false);
+const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
 
   // Initialize loading state
   useEffect(() => {
@@ -682,62 +681,6 @@ const Admin = () => {
     fetchRooms();
   };
 
-  const handleSearchRooms = async (criteria, params = {}) => {
-    setSearchLoading(true);
-    try {
-      const token = localStorage.getItem("authToken");
-      const queryParams = new URLSearchParams({
-        page: params.page || searchPagination.current - 1,
-        size: params.size || searchPagination.pageSize,
-        sort: 'roomNumber,asc'
-      });
-  
-      const response = await fetch(
-        `http://localhost:22986/demo/search/rooms?${queryParams}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(criteria),
-        }
-      );
-  
-      if (!response.ok) throw new Error("Lỗi khi tìm kiếm phòng");
-      
-      const data = await response.json();
-      const formattedResults = data.content.map((room) => ({
-        ...room,
-        floor: room.floor ?? "Chưa cập nhật",
-        peopleCount: room.peopleCount ?? 0,
-        residentCount: room.residentCount ?? 0,
-        key: room.id,
-      }));
-      
-      setSearchResults(formattedResults);
-      setSearchPagination({
-        current: (params.page || 0) + 1,
-        pageSize: params.size || 10,
-        total: data.totalElements
-      });
-      setSearchCriteria(criteria); // Cập nhật searchCriteria sau khi tìm kiếm
-      setActiveTabKey('2');
-    } catch (error) {
-      message.error('Lỗi tìm kiếm: ' + error.message);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-  // Handle tab change
-  const handleTabChange = (activeKey) => {
-    setActiveTabKey(activeKey);
-    // Gọi lại search với criteria hiện tại khi chuyển tab
-    if (activeKey === '2' && Object.keys(searchCriteria).length > 0) {
-      handleSearchRooms(searchCriteria);
-    }
-  };
-
   // Table columns
   const columns = [
     {
@@ -840,390 +783,557 @@ const Admin = () => {
     },
   ];
 
-  // Search Modal Component
-  const SearchModal = () => {
-    const [form] = Form.useForm();
-  
-    // Khởi tạo form values từ searchCriteria hiện tại
-    useEffect(() => {
-      form.setFieldsValue(searchCriteria);
-    }, [isSearchModalVisible]);
-  
-    const handleReset = () => {
-      form.resetFields();
-      setSearchCriteria({});
-    };
-  
-    const handleSearch = async () => {
-      try {
-        const values = await form.validateFields();
-        // Gọi trực tiếp handleSearchRooms với values từ form
-        handleSearchRooms(values);
-        setIsSearchModalVisible(false);
-      } catch (error) {
-        console.log('Validation Failed:', error);
-      }
-    };
-  
-    return (
-      <Modal
-        title="Tìm kiếm nâng cao"
-        visible={isSearchModalVisible}
-        onCancel={() => setIsSearchModalVisible(false)}
-        footer={[
-          <Button key="reset" onClick={handleReset}>
-            Đặt lại
-          </Button>,
-          <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
-            Hủy
-          </Button>,
-          <Button
-            key="search"
-            type="primary"
-            onClick={handleSearch}
-          >
-            Tìm kiếm
-          </Button>
-        ]}
-        centered
-        destroyOnClose={false}
-        maskClosable={false}
-        width={800}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={searchCriteria}
+  const SearchModal = () => (
+    <Modal
+      title="Tìm kiếm nâng cao"
+      visible={isSearchModalVisible}
+      onCancel={() => setIsSearchModalVisible(false)}
+      footer={[
+        <Button key="reset" onClick={() => setSearchCriteria({})}>
+          Đặt lại
+        </Button>,
+        <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
+          Hủy
+        </Button>,
+        <Button
+          key="search"
+          type="primary"
+          onClick={() => {
+            handleSearchRooms();
+            setIsSearchModalVisible(false);
+          }}
         >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Số phòng" name="roomNumber">
-                <Input />
-              </Form.Item>
-              
-              <Form.Item label="Tầng" name="floor">
-                <InputNumber 
-                  style={{ width: '100%' }}
-                  min={1}
-                  max={50}
-                />
-              </Form.Item>
+          Tìm kiếm
+        </Button>
+      ]}
+      width={800}
+    >
+      <Form layout="vertical">
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Số phòng">
+              <Input
+                value={searchCriteria.roomNumber}
+                onChange={e => setSearchCriteria({...searchCriteria, roomNumber: e.target.value})}
+              />
+            </Form.Item>
+            <Form.Item label="Tầng">
+              <InputNumber
+                style={{ width: '100%' }}
+                value={searchCriteria.floor}
+                onChange={value => setSearchCriteria({...searchCriteria, floor: value})}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Loại phòng">
+              <Select
+                value={searchCriteria.roomType}
+                onChange={value => setSearchCriteria({...searchCriteria, roomType: value})}
+              >
+                <Option value="">Tất cả</Option>
+                <Option value="KIOT">Kiot</Option>
+                <Option value="STANDARD">Tiêu chuẩn</Option>
+                <Option value="PENHOUSE">Penthouse</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Trạng thái">
+              <Select
+                value={searchCriteria.status}
+                onChange={value => setSearchCriteria({...searchCriteria, status: value})}
+              >
+                <Option value="">Tất cả</Option>
+                <Option value="VACANT">Trống</Option>
+                <Option value="OCCUPIED">Đã thuê</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+        
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Số người dùng tối thiểu">
+              <InputNumber
+                style={{ width: '100%' }}
+                value={searchCriteria.minPeople}
+                onChange={value => setSearchCriteria({...searchCriteria, minPeople: value})}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Số cư dân tối thiểu">
+              <InputNumber
+                style={{ width: '100%' }}
+                value={searchCriteria.minResidents}
+                onChange={value => setSearchCriteria({...searchCriteria, minResidents: value})}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    </Modal>
+  );
+  const handleSearchRooms = async (params = {}) => {
+    setSearchLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const queryParams = new URLSearchParams({
+        page: params.page || searchPagination.current - 1,
+        size: params.size || searchPagination.pageSize,
+        sort: 'roomNumber,asc'
+      });
   
-              <Form.Item label="Số lượng người" name="peopleCount">
-                <InputNumber 
-                  style={{ width: '100%' }}
-                  min={0}
-                />
-              </Form.Item>
-            </Col>
+      const response = await fetch(
+        `http://localhost:22986/demo/search/rooms?${queryParams}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(searchCriteria),
+        }
+      );
   
-            <Col span={12}>
-              <Form.Item label="Diện tích" name="area">
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  step={0.1}
-                />
-              </Form.Item>
-  
-              <Form.Item label="Loại phòng" name="roomType">
-                <Select allowClear>
-                  <Option value="STANDARD">Tiêu chuẩn</Option>
-                  <Option value="KIOT">Kiot</Option>
-                  <Option value="PENHOUSE">Penhouse</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-  
-          <Form.Item label="Trạng thái" name="status">
-            <Select allowClear>
-              <Option value="VACANT">Trống</Option>
-              <Option value="OCCUPIED">Đã thuê</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-    );
+      const data = await response.json();
+      setSearchResults(data.content);
+      setSearchPagination({
+        current: (params.page || 0) + 1,
+        pageSize: params.size || 10,
+        total: data.totalElements
+      });
+      setActiveTabKey('2');
+    } catch (error) {
+      message.error('Lỗi tìm kiếm: ' + error.message);
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
-// Main component render
-return (
-  <div style={{ padding: 24 }}>
-    <Card
-      title={
-        <Space>
-          <HomeOutlined />
-          <Text strong>Quản lý Phòng</Text>
-        </Space>
-      }
-      
-    >
-      <Tabs activeKey={activeTabKey} onChange={handleTabChange}>
-        <TabPane tab="Danh sách phòng" key="1">
-          <Spin spinning={loading.page}>
-            <Table
-              columns={columns}
-              dataSource={rooms}
+  return (
+    <div style={{ padding: '20px' }}>
+      <SearchModal/>
+      {loading.initial ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <>
+          {/* Filter Card */}
+          <Card title="Lọc phòng" style={{ marginBottom: 20 }}>
+            <Form
+              form={filterForm}
+              layout="vertical"
+              onFinish={searchRooms}
+            >
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Form.Item name="roomNumber" label="Số phòng">
+                    <Input placeholder="Nhập số phòng" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="floor" label="Tầng">
+                    <InputNumber style={{ width: '100%' }} placeholder="Nhập tầng" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="peopleCount" label="Số người dùng">
+                    <InputNumber style={{ width: '100%' }} placeholder="Nhập số người dùng" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Form.Item name="residentCount" label="Số cư dân">
+                    <InputNumber style={{ width: '100%' }} placeholder="Nhập số cư dân" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="area" label="Diện tích">
+                    <InputNumber style={{ width: '100%' }} placeholder="Nhập diện tích" step={0.1} />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="roomType" label="Loại phòng">
+                    <Select placeholder="Chọn loại phòng">
+                      <Option value="">Tất cả</Option>
+                      <Option value="KIOT">Kiot</Option>
+                      <Option value="STANDARD">Tiêu chuẩn</Option>
+                      <Option value="PENHOUSE">Penthouse</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+              
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Form.Item name="status" label="Trạng thái">
+                    <Select placeholder="Chọn trạng thái">
+                      <Option value="">Tất cả</Option>
+                      <Option value="VACANT">Trống</Option>
+                      <Option value="OCCUPIED">Đã thuê</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={16} style={{ textAlign: 'right', marginTop: 30 }}>
+                  <Space>
+                    <Button type="primary" htmlType="submit">
+                      Lọc
+                    </Button>
+                    <Button onClick={resetFilters}>
+                      Đặt lại
+                    </Button>
+                  </Space>
+                </Col>
+              </Row>
+            </Form>
+          </Card>
+
+          {/* Room Table */}
+          <Card title="Danh sách phòng">
+            <Table 
+              columns={columns} 
+              dataSource={rooms} 
+              rowKey="id"
+              loading={loading.page}
               pagination={false}
-              scroll={{ x: 1300 }}
-              locale={{
-                emptyText: error ? (
-                  <Empty
-                    description={<Text type="danger">{error}</Text>}
-                  />
-                ) : (
-                  <Empty description="Không có dữ liệu" />
-                )
-              }}
+              size="middle"
             />
-            <Divider />
-            <Row justify="end" style={{ marginTop: 16 }}>
-              <Pagination
+            <div style={{ marginTop: 16, textAlign: 'right' }}>
+              <Pagination 
                 current={pagination.current}
                 pageSize={pagination.pageSize}
                 total={pagination.total}
-                onChange={(page, pageSize) => setPagination(prev => ({
-                  ...prev,
-                  current: page,
-                  pageSize: pageSize
-                }))}
+                onChange={(page, pageSize) => {
+                  setPagination({
+                    ...pagination,
+                    current: page,
+                    pageSize: pageSize
+                  });
+                }}
                 showSizeChanger
-                showQuickJumper
+                showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} phòng`}
               />
-            </Row>
-          </Spin>
-        </TabPane>
+            </div>
+          </Card>
 
-        <TabPane tab="Kết quả tìm kiếm" key="2" forceRender>
-          <Spin spinning={searchLoading}>
-          
-        <Button 
-          type="primary" 
-          icon={<SearchOutlined />} 
-          onClick={() => setIsSearchModalVisible(true)}
-        >
-          Tìm kiếm nâng cao
-        </Button>
-      
-            <Table
-              columns={columns}
-              dataSource={searchResults}
-              pagination={false}
-              scroll={{ x: 1300 }}
-              locale={{
-                emptyText: searchLoading ? (
-                  <Empty description="Đang tải..." />
-                ) : (
-                  <Empty description="Không có kết quả phù hợp" />
-                )
-              }}
-            />
-            <Divider />
-            <Row justify="end" style={{ marginTop: 16 }}>
-  <Pagination
-    current={searchPagination.current}
-    pageSize={searchPagination.pageSize}
-    total={searchPagination.total}
-    onChange={(page, pageSize) => handleSearchRooms(searchCriteria, {
-      page: page - 1,
-      size: pageSize
-    })}
-    showSizeChanger
-    showQuickJumper
-  />
-</Row>
-          </Spin>
-        </TabPane>
-      </Tabs>
-    </Card>
-
-    {/* Room Details Modal */}
-    <Modal
-      title={`Chi tiết phòng ${selectedRoom?.roomNumber}`}
-      visible={detailModalVisible}
-      onCancel={() => setDetailModalVisible(false)}
-      footer={null}
-      width={600}
-    >
-      <Spin spinning={loading.form}>
-        {selectedRoom && (
-          <List
-            itemLayout="horizontal"
-            dataSource={[
-              { label: 'Số phòng', value: selectedRoom.roomNumber },
-              { label: 'Tầng', value: selectedRoom.floor },
-              { label: 'Diện tích', value: `${selectedRoom.area} m²` },
-              { label: 'Loại phòng', value: selectedRoom.roomType },
-              { label: 'Trạng thái', value: getRoomStatusBadge(selectedRoom.status) },
-            ]}
-            renderItem={item => (
-              <List.Item>
-                <List.Item.Meta
-                  title={<Text strong>{item.label}</Text>}
-                  description={item.value}
-                />
-              </List.Item>
+          {/* Room Detail Modal */}
+          <Modal
+            title={`Chi tiết phòng ${selectedRoom?.roomNumber || ''}`}
+            visible={detailModalVisible}
+            onCancel={() => setDetailModalVisible(false)}
+            footer={null}
+            width={600}
+          >
+            {loading.form ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Spin />
+              </div>
+            ) : selectedRoom ? (
+              <Card bordered={false}>
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Text strong>Số phòng:</Text> {selectedRoom.roomNumber || 'N/A'}
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>Tầng:</Text> {selectedRoom.floor || 'N/A'}
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>Diện tích:</Text> {selectedRoom.area ? `${selectedRoom.area} m²` : 'N/A'}
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>Loại phòng:</Text> {selectedRoom.roomType || 'N/A'}
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>Trạng thái:</Text> {getRoomStatusBadge(selectedRoom.status)}
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>Số người dùng:</Text> {selectedRoom.peopleCount || 0}
+                  </Col>
+                  <Col span={12}>
+                    <Text strong>Số cư dân:</Text> {selectedRoom.residentCount || 0}
+                  </Col>
+                </Row>
+                <Divider />
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Button 
+                    type="primary" 
+                    onClick={() => showRoomUsers(selectedRoom)}
+                  >
+                    Xem người dùng
+                  </Button>
+                  <Button 
+                    onClick={() => showRoomResidents(selectedRoom)}
+                  >
+                    Xem cư dân
+                  </Button>
+                </div>
+              </Card>
+            ) : (
+              <div>Không có dữ liệu phòng</div>
             )}
-          />
-        )}
-      </Spin>
-    </Modal>
+          </Modal>
 
-    {/* User Management Modals */}
-    <Modal
-      title={`Quản lý người dùng - Phòng ${selectedRoom?.roomNumber}`}
-      visible={userModalVisible}
-      onCancel={() => setUserModalVisible(false)}
-      footer={null}
-      width={800}
-    >
-      <Spin spinning={loading.form}>
-        <List
-          header={<Text strong>Danh sách người dùng</Text>}
-          bordered
-          dataSource={roomUsers}
-          renderItem={(user, index) => (
-            <List.Item
-              actions={[
-                <Tooltip title="Xóa khỏi phòng">
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleRemoveUser(selectedRoom.id, selectedRoom.userIds[index])}
-                  />
-                </Tooltip>
-              ]}
-            >
-              <List.Item.Meta
-                avatar={<UserOutlined />}
-                title={user.username}
-                description={user.email}
-              />
-            </List.Item>
-          )}
-        />
-      </Spin>
-    </Modal>
-
-    <Modal
-      title="Thêm người dùng vào phòng"
-      visible={addUserModalVisible}
-      onCancel={() => setAddUserModalVisible(false)}
-      onOk={addUserToRoom}
-      confirmLoading={loading.form}
-    >
-      <Input
-        placeholder="Nhập tên người dùng"
-        value={newUsername}
-        onChange={(e) => setNewUsername(e.target.value)}
-        prefix={<UserOutlined />}
-      />
-    </Modal>
-
-    {/* Resident Management Modals */}
-    <Modal
-      title={`Quản lý cư dân - Phòng ${selectedRoom?.roomNumber}`}
-      visible={residentModalVisible}
-      onCancel={() => setResidentModalVisible(false)}
-      footer={null}
-      width={800}
-    >
-      <Spin spinning={loading.form}>
-        <List
-          header={
-            <Space>
-              <Text strong>Danh sách cư dân</Text>
-              <Button
-                type="dashed"
-                icon={<EditOutlined />}
-                onClick={() => setUpdateResidentModalVisible(true)}
+          {/* Room Users Modal */}
+          <Modal
+            title={`Người dùng phòng ${selectedRoom?.roomNumber || ''}`}
+            visible={userModalVisible}
+            onCancel={() => setUserModalVisible(false)}
+            footer={[
+              <Button key="back" onClick={() => setUserModalVisible(false)}>
+                Đóng
+              </Button>,
+              <Button 
+                key="add" 
+                type="primary" 
+                onClick={() => {
+                  setUserModalVisible(false);
+                  setAddUserModalVisible(true);
+                }}
               >
-                Cập nhật thông tin
-              </Button>
-            </Space>
-          }
-          bordered
-          dataSource={roomResidents}
-          renderItem={(resident) => (
-            <List.Item
-              actions={[
-                <Tooltip title="Xóa cư dân">
-                  <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => deleteResident(resident.name, resident.age)}
-                  />
-                </Tooltip>
-              ]}
-            >
-              <List.Item.Meta
-                title={resident.name}
-                description={`Tuổi: ${resident.age}`}
+                Thêm người dùng
+              </Button>,
+            ]}
+            width={600}
+          >
+            {loading.form ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Spin />
+              </div>
+            ) : roomUsers.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={roomUsers}
+                renderItem={(user, index) => (
+                  <List.Item
+                    actions={[
+                      <Button 
+                        type="text" 
+                        danger 
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemoveUser(selectedRoom.id, selectedRoom.userIds[index])}
+                      >
+                        Xóa
+                      </Button>
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<UserOutlined style={{ fontSize: '24px' }} />}
+                      title={user}
+                      description={`ID người dùng: ${selectedRoom.userIds[index]}`}
+                    />
+                  </List.Item>
+                )}
               />
-            </List.Item>
-          )}
-        />
-      </Spin>
-    </Modal>
+            ) : (
+              <Empty description="Không có người dùng trong phòng này" />
+            )}
+          </Modal>
 
-    <Modal
-      title="Thêm cư dân vào phòng"
-      visible={addResidentModalVisible}
-      onCancel={() => setAddResidentModalVisible(false)}
-      onOk={addResidentToRoom}
-      confirmLoading={loading.form}
-    >
-      <Input
-        placeholder="Tên cư dân"
-        value={newResident.name}
-        onChange={(e) => setNewResident({...newResident, name: e.target.value})}
-        style={{ marginBottom: 16 }}
-      />
-      <InputNumber
-        placeholder="Tuổi"
-        value={newResident.age}
-        onChange={(value) => setNewResident({...newResident, age: value})}
-        style={{ width: '100%' }}
-      />
-    </Modal>
+          {/* Add User Modal */}
+          <Modal
+            title={`Thêm người dùng vào phòng ${selectedRoom?.roomNumber || ''}`}
+            visible={addUserModalVisible}
+            onOk={addUserToRoom}
+            onCancel={() => setAddUserModalVisible(false)}
+            confirmLoading={loading.form}
+          >
+            <Form layout="vertical">
+              <Form.Item
+                label="Tên người dùng"
+                required
+                validateStatus={error && !newUsername ? 'error' : ''}
+                help={error && !newUsername ? 'Vui lòng nhập tên người dùng' : ''}
+              >
+                <Input 
+                  placeholder="Nhập tên người dùng" 
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  prefix={<UserOutlined />}
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
 
-    <Modal
-      title="Cập nhật thông tin cư dân"
-      visible={updateResidentModalVisible}
-      onCancel={() => setUpdateResidentModalVisible(false)}
-      onOk={updateResidentInRoom}
-      confirmLoading={loading.form}
-    >
-      <Input
-        placeholder="Tên cũ"
-        value={updateResident.oldName}
-        onChange={(e) => setUpdateResident({...updateResident, oldName: e.target.value})}
-        style={{ marginBottom: 16 }}
-      />
-      <InputNumber
-        placeholder="Tuổi cũ"
-        value={updateResident.oldAge}
-        onChange={(value) => setUpdateResident({...updateResident, oldAge: value})}
-        style={{ width: '100%', marginBottom: 16 }}
-      />
-      <Input
-        placeholder="Tên mới"
-        value={updateResident.newName}
-        onChange={(e) => setUpdateResident({...updateResident, newName: e.target.value})}
-        style={{ marginBottom: 16 }}
-      />
-      <InputNumber
-        placeholder="Tuổi mới"
-        value={updateResident.newAge}
-        onChange={(value) => setUpdateResident({...updateResident, newAge: value})}
-        style={{ width: '100%' }}
-      />
-    </Modal>
+          {/* Room Residents Modal */}
+          <Modal
+            title={`Cư dân phòng ${selectedRoom?.roomNumber || ''}`}
+            visible={residentModalVisible}
+            onCancel={() => setResidentModalVisible(false)}
+            footer={[
+              <Button key="back" onClick={() => setResidentModalVisible(false)}>
+                Đóng
+              </Button>,
+              <Button 
+                key="add" 
+                type="primary" 
+                onClick={() => {
+                  setResidentModalVisible(false);
+                  setAddResidentModalVisible(true);
+                }}
+              >
+                Thêm cư dân
+              </Button>,
+              <Button 
+                key="update"
+                onClick={() => {
+                  setResidentModalVisible(false);
+                  setUpdateResidentModalVisible(true);
+                }}
+              >
+                Cập nhật cư dân
+              </Button>
+            ]}
+            width={600}
+          >
+            {loading.form ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Spin />
+              </div>
+            ) : roomResidents.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={roomResidents}
+                renderItem={(resident) => (
+                  <List.Item
+                    actions={[
+                      <Button 
+                        type="text" 
+                        danger 
+                        icon={<DeleteOutlined />}
+                        onClick={() => deleteResident(resident.name, resident.age)}
+                      >
+                        Xóa
+                      </Button>
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<UserOutlined style={{ fontSize: '24px' }} />}
+                      title={resident.name}
+                      description={`Tuổi: ${resident.age}`}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Empty description="Không có cư dân trong phòng này" />
+            )}
+          </Modal>
 
-    <SearchModal />
-  </div>
-);
+          {/* Add Resident Modal */}
+          <Modal
+            title={`Thêm cư dân vào phòng ${selectedRoom?.roomNumber || ''}`}
+            visible={addResidentModalVisible}
+            onOk={addResidentToRoom}
+            onCancel={() => setAddResidentModalVisible(false)}
+            confirmLoading={loading.form}
+          >
+            <Form layout="vertical">
+              <Form.Item
+                label="Tên cư dân"
+                required
+                validateStatus={error && !newResident.name ? 'error' : ''}
+                help={error && !newResident.name ? 'Vui lòng nhập tên cư dân' : ''}
+              >
+                <Input 
+                  placeholder="Nhập tên cư dân" 
+                  value={newResident.name}
+                  onChange={(e) => setNewResident({...newResident, name: e.target.value})}
+                  prefix={<UserOutlined />}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Tuổi"
+                required
+                validateStatus={error && !newResident.age ? 'error' : ''}
+                help={error && !newResident.age ? 'Vui lòng nhập tuổi' : ''}
+              >
+                <InputNumber 
+                  placeholder="Nhập tuổi" 
+                  style={{ width: '100%' }}
+                  min={0}
+                  value={newResident.age}
+                  onChange={(value) => setNewResident({...newResident, age: value})}
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
+
+          {/* Update Resident Modal */}
+          <Modal
+            title={`Cập nhật cư dân trong phòng ${selectedRoom?.roomNumber || ''}`}
+            visible={updateResidentModalVisible}
+            onOk={updateResidentInRoom}
+            onCancel={() => setUpdateResidentModalVisible(false)}
+            confirmLoading={loading.form}
+          >
+            <Form layout="vertical">
+              <Title level={5}>Thông tin cư dân hiện tại</Title>
+              <Form.Item
+                label="Tên hiện tại"
+                required
+                validateStatus={error && !updateResident.oldName ? 'error' : ''}
+                help={error && !updateResident.oldName ? 'Vui lòng nhập tên cư dân hiện tại' : ''}
+              >
+                <Input 
+                  placeholder="Nhập tên cư dân hiện tại" 
+                  value={updateResident.oldName}
+                  onChange={(e) => setUpdateResident({...updateResident, oldName: e.target.value})}
+                  prefix={<UserOutlined />}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Tuổi hiện tại"
+                required
+                validateStatus={error && !updateResident.oldAge ? 'error' : ''}
+                help={error && !updateResident.oldAge ? 'Vui lòng nhập tuổi hiện tại' : ''}
+              >
+                <InputNumber 
+                  placeholder="Nhập tuổi hiện tại" 
+                  style={{ width: '100%' }}
+                  min={0}
+                  value={updateResident.oldAge}
+                  onChange={(value) => setUpdateResident({...updateResident, oldAge: value})}
+                />
+              </Form.Item>
+
+              <Divider />
+              <Title level={5}>Thông tin cư dân mới</Title>
+              <Form.Item
+                label="Tên mới"
+                required
+                validateStatus={error && !updateResident.newName ? 'error' : ''}
+                help={error && !updateResident.newName ? 'Vui lòng nhập tên cư dân mới' : ''}
+              >
+                <Input 
+                  placeholder="Nhập tên cư dân mới" 
+                  value={updateResident.newName}
+                  onChange={(e) => setUpdateResident({...updateResident, newName: e.target.value})}
+                  prefix={<UserOutlined />}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Tuổi mới"
+                required
+                validateStatus={error && !updateResident.newAge ? 'error' : ''}
+                help={error && !updateResident.newAge ? 'Vui lòng nhập tuổi mới' : ''}
+              >
+                <InputNumber 
+                  placeholder="Nhập tuổi mới" 
+                  style={{ width: '100%' }}
+                  min={0}
+                  value={updateResident.newAge}
+                  onChange={(value) => setUpdateResident({...updateResident, newAge: value})}
+                />
+              </Form.Item>
+            </Form>
+          </Modal>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default Admin;

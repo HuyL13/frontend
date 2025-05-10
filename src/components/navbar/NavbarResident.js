@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { FaCog } from "react-icons/fa";
-
+import { useLayout } from '../../context/LayoutContext';
 const NavbarResident = ({ username, handleLogout }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-
+import { useLayout } from '../../context/LayoutContext';
 const NavbarAdmin = ({ username, handleLogout }) => {
   const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -18,6 +18,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
     
     headerTop: {
       position: 'fixed',
+      left: sidebarOpen ? '250px' : '70px',
       top: 0,
       left: 0,
       right: 0,
@@ -28,13 +29,13 @@ const NavbarAdmin = ({ username, handleLogout }) => {
     },
     appSidebar: {
       position: 'fixed',
-      top: '70px',
+      top: 0,
       left: 0,
-      height: 'calc(100vh - 70px)',
+      height: '100vh',
       width: '250px',
       background: '#1a237e',
       color: '#fff',
-      zIndex: 100,
+      zIndex: 1000,
       transition: 'all 0.3s ease',
       overflowY: 'auto',
       boxShadow: '0 3px 10px rgba(0,0,0,0.2)',

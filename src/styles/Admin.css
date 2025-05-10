@@ -1,8 +1,8 @@
 /* Global Styles */
 body, html {
   margin: 0;
-  
-  width:100vw;
+  margin-left:8vw;
+  width:80vw;
   margin-top:5vh;
   padding: 0;
   font-family: Arial, sans-serif;
@@ -259,4 +259,8 @@ body, html {
   color: #dc3545;
   text-align: center;
   margin: 10px 0;
+}
+.black{
+  color:black;
+  font-color:black;
 }

@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext"; 
 import { NavbarProvider } from "./context/NavbarContext"; 
+import { LayoutProvider } from './context/LayoutContext';
 import NavbarSelector from "./components/NavbarSelector";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -33,6 +34,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 function App() {
   return (
     <div>  {/* ✅ Bọc App trong div để tránh lỗi Bootstrap layout */}
+    <LayoutProvider>
       <NavbarSelector />
       <Routes>
         <Route path="/" element={<Splash />} />
@@ -62,6 +64,7 @@ function App() {
           <Route path="/resident" element={<Resident />} />
         </Route>
       </Routes>
+      </LayoutProvider>
     </div>
   );
 }

@@ -1,7 +1,8 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import {
   Table, Button, Modal, Form, Input, Select, Tag, Spin, message,
-  Tooltip, Card, Divider, Row, Col, Typography, Descriptions, Statistic
+  Tooltip, Card, Divider, Row, Col, Typography, Descriptions, Statistic,Tabs
 } from 'antd';
 import {
   ExclamationCircleOutlined, ReloadOutlined, PlusOutlined,
@@ -9,12 +10,20 @@ import {
   SearchOutlined, UserOutlined, HomeOutlined, TeamOutlined, GlobalOutlined
 } from '@ant-design/icons';
 import "../../../styles/Admin.css";
+import "../../../styles/UserManagement.css";
+
+
+
+const { TabPane } = Tabs;
+
+// Thêm state cho active tab
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 const UserManagement = () => {
   // States
+  const [activeTabKey, setActiveTabKey] = useState('1');
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,12 +53,36 @@ const UserManagement = () => {
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
 
+  const [searchPagination, setSearchPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
+
   // Residency status options
   const residencyOptions = [
     { value: "THUONG_TRU", label: "Thường trú" },
     { value: "TAM_TRU", label: "Tạm trú" },
     { value: "TAM_VANG", label: "Tạm vắng" }
   ];
+
+  const [searchCriteria, setSearchCriteria] = useState({
+    username: '',
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+
+  const [searchResults, setSearchResults] = useState([]);
+const [searchLoading, setSearchLoading] = useState(false);
+const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
+
 
   // Initial loading effect
   useEffect(() => {
@@ -58,6 +91,40 @@ const UserManagement = () => {
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
+
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    const sortField = sorter.field || 'username';
+    const sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
+    
+    const params = {
+      page: pagination.current - 1,
+      size: pagination.pageSize,
+      sort: `${sortField},${sortOrder}`
+    };
+    
+    setPagination(pagination);
+    handleSearchUsers(params);
+  };
+  
+  const handleTabTableChange = (pagination, filters, sorter, isSearch) => {
+    const sortField = sorter.field || 'username';
+    const sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
+    
+    const params = {
+      page: pagination.current - 1,
+      size: pagination.pageSize,
+      sort: `${sortField},${sortOrder}`
+    };
+    
+    if (isSearch) {
+      setSearchPagination(pagination);
+      handleSearchUsers(params);
+    } else {
+      setPagination(pagination);
+      fetchUsers(params);
+    }
+  };
 
   // Calculate statistics
   const calculateStatistics = (userData) => {
@@ -77,6 +144,103 @@ const UserManagement = () => {
     setStatistics(stats);
   };
 
+  const handleSearchUsers = async (params = {}) => {
+    setSearchLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const queryParams = new URLSearchParams({
+        page: params.page || 0,
+        size: params.size || 10,
+        sort: params.sort || 'username,asc'
+      });
+  
+      const response = await fetch(
+        `http://localhost:22986/demo/search/users?${queryParams}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(searchCriteria),
+        }
+      );
+  
+      const data = await response.json();
+      setSearchResults(data.content);
+      setPagination({
+        current: (params.page || 0) + 1,
+        pageSize: params.size || 10,
+        total: data.totalElements,
+      });
+      setActiveTabKey('2'); // Chuyển sang tab kết quả tìm kiếm
+    } catch (error) {
+      message.error(error.message);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+  const SearchModal = () => (
+    <Modal
+    title="Tìm kiếm nâng cao"
+    visible={isSearchModalVisible}
+    onCancel={() => setIsSearchModalVisible(false)}
+    onOk={() => {
+      handleSearchUsers();
+      setIsSearchModalVisible(false);
+    }}
+    footer={[
+      <Button key="back" onClick={() => setIsSearchModalVisible(false)}>
+        Hủy
+      </Button>,
+      <Button
+        key="submit"
+        type="primary"
+        onClick={() => {
+          handleSearchUsers();
+          setIsSearchModalVisible(false);
+        }}
+      >
+        Tìm kiếm
+      </Button>,
+    ]}
+  >
+      <Form layout="vertical">
+        <Form.Item label="Username">
+          <Input
+            value={searchCriteria.username}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, username: e.target.value })
+            }
+          />
+        </Form.Item>
+        <Form.Item label="Họ">
+          <Input
+            value={searchCriteria.firstName}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, firstName: e.target.value })
+            }
+          />
+        </Form.Item>
+        <Form.Item label="Tên">
+          <Input
+            value={searchCriteria.lastName}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, lastName: e.target.value })
+            }
+          />
+        </Form.Item>
+        <Form.Item label="Email">
+          <Input
+            value={searchCriteria.email}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, email: e.target.value })
+            }
+          />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
   // Fetch users data
   const fetchUsers = async () => {
     setLoading(prev => ({ ...prev, page: true }));
@@ -570,39 +734,43 @@ const UserManagement = () => {
             </Col>
           </Row>
 
-          <Card 
-            title={
-              <Title level={4}>
-                <UserOutlined /> Quản lý người dùng
-              </Title>
-            }
+
+          <Tabs
+        activeKey={activeTabKey}
+        onChange={setActiveTabKey}
+        tabBarExtraContent={
+          activeTabKey === '1' && (
+            <div className="tab-extra-actions">
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  createForm.resetFields();
+                  setShowCreateModal(true);
+                }}
+              >
+                Thêm người dùng
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => fetchUsers()}
+                style={{ marginLeft: 8 }}
+              >
+                Làm mới
+              </Button>
+            </div>
+          )
+        }
+      >
+        {/* Tab Danh sách người dùng */}
+        <TabPane tab="Danh sách người dùng" key="1">
+          <Card
             className="user-table-card"
-            extra={
-              <div className="card-actions">
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    createForm.resetFields();
-                    setShowCreateModal(true);
-                  }}
-                  style={{ marginRight: 8 }}
-                >
-                  Thêm người dùng
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={fetchUsers}
-                >
-                  Làm mới
-                </Button>
-              </div>
-            }
             actions={[
-              <div className="card-footer">
+              <div className="card-filter-bar">
                 <Input
                   prefix={<SearchOutlined />}
-                  placeholder="Tìm kiếm người dùng..."
+                  placeholder="Tìm kiếm nhanh..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -626,20 +794,136 @@ const UserManagement = () => {
               </div>
             ]}
           >
-            <Table 
-              dataSource={filteredUsers} 
-              columns={columns} 
+            <Table
+              dataSource={filteredUsers}
+              columns={columns}
               loading={loading.page}
-              pagination={{ 
-                pageSize: 10,
+              pagination={{
+                ...pagination,
+                showSizeChanger: true,
                 showTotal: (total) => `Tổng ${total} người dùng`
               }}
+              onChange={(pagination, filters, sorter) => 
+                handleTabTableChange(pagination, filters, sorter, false)
+              }
               bordered
               scroll={{ x: 1300 }}
             />
           </Card>
+        </TabPane>
+
+        {/* Tab Kết quả tìm kiếm */}
+        <TabPane tab="Kết quả tìm kiếm" key="2">
+          <Card
+            className="search-results-card"
+            extra={
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={() => setIsSearchModalVisible(true)}
+              >
+                Tìm kiếm nâng cao
+              </Button>
+            }
+          >
+            <Table
+              columns={columns}
+              dataSource={searchResults}
+              rowKey="id"
+              loading={searchLoading}
+              pagination={{
+                ...searchPagination,
+                showSizeChanger: true,
+                showTotal: (total) => `Tổng ${total} kết quả`
+              }}
+              onChange={(pagination, filters, sorter) => 
+                handleTabTableChange(pagination, filters, sorter, true)
+              }
+              bordered
+              scroll={{ x: 1300 }}
+            />
+          </Card>
+        </TabPane>
+      </Tabs>
+
+
+
         </>
       )}
+
+       {/* Search Modal */}
+       <Modal
+        title="Tìm kiếm nâng cao"
+        visible={isSearchModalVisible}
+        onCancel={() => setIsSearchModalVisible(false)}
+        footer={[
+          <Button key="reset" onClick={() => setSearchCriteria({})}>
+            Đặt lại
+          </Button>,
+          <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
+            Hủy
+          </Button>,
+          <Button
+            key="search"
+            type="primary"
+            onClick={() => {
+              handleSearchUsers();
+              setIsSearchModalVisible(false);
+            }}
+          >
+            Tìm kiếm
+          </Button>
+        ]}
+        width={600}
+      >
+        <Form layout="vertical">
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Username">
+                <Input
+                  value={searchCriteria.username}
+                  onChange={(e) =>
+                    setSearchCriteria({ ...searchCriteria, username: e.target.value })
+                  }
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Email">
+                <Input
+                  value={searchCriteria.email}
+                  onChange={(e) =>
+                    setSearchCriteria({ ...searchCriteria, email: e.target.value })
+                  }
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Họ">
+                <Input
+                  value={searchCriteria.firstName}
+                  onChange={(e) =>
+                    setSearchCriteria({ ...searchCriteria, firstName: e.target.value })
+                  }
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Tên">
+                <Input
+                  value={searchCriteria.lastName}
+                  onChange={(e) =>
+                    setSearchCriteria({ ...searchCriteria, lastName: e.target.value })
+                  }
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
 
       {/* Create User Modal */}
       <Modal
@@ -819,52 +1103,104 @@ const UserManagement = () => {
       </Modal>
 
       {/* User Detail Modal */}
-      <Modal
-        title="Chi tiết người dùng"
-        open={showDetailModal}
-        onCancel={() => setShowDetailModal(false)}
-        footer={[
-          <Button key="close" onClick={() => setShowDetailModal(false)}>
-            Đóng
-          </Button>
-        ]}
+{/* User Detail Modal */}
+<Modal
+  title={
+    <div style={{
+      fontSize: "1.2rem",
+      fontWeight: 600,
+      textAlign: "center",
+    }}>
+      Chi tiết người dùng
+    </div>
+  }
+  open={showDetailModal}
+  onCancel={() => setShowDetailModal(false)}
+  footer={[
+    <Button key="close" onClick={() => setShowDetailModal(false)}>
+      Đóng
+    </Button>
+  ]}
+>
+  {selectedUser && (
+    <div style={{ overflowX: "auto", marginTop: "1rem" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          minWidth: 300,
+        }}
       >
-        {selectedUser && (
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="ID">
-              {selectedUser.id}
-            </Descriptions.Item>
-            <Descriptions.Item label="Username">
-              {selectedUser.username}
-            </Descriptions.Item>
-            <Descriptions.Item label="Mật khẩu">
-              {selectedUser.password}
-            </Descriptions.Item>
-            <Descriptions.Item label="Email">
-              {selectedUser.email}
-            </Descriptions.Item>
-            <Descriptions.Item label="Họ">
-              {selectedUser.firstName}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tên">
-              {selectedUser.lastName}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày sinh">
-              {selectedUser.dob}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tình trạng cư trú">
-              {getResidencyStatusLabel(selectedUser.residencyStatus)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Vai trò">
+        <tbody>
+          {[
+            ["ID", selectedUser.id],
+            ["Username", selectedUser.username],
+            ["Email", selectedUser.email],
+            ["Họ", selectedUser.firstName],
+            ["Tên", selectedUser.lastName],
+            ["Ngày sinh", selectedUser.dob],
+            ["Tình trạng cư trú", getResidencyStatusLabel(selectedUser.residencyStatus)],
+          ].map(([label, value]) => (
+            <tr key={label}>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px",
+                  fontWeight: 500,
+                  backgroundColor: "#f5f5f5",
+                  width: "30%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {label}
+              </th>
+              <td
+                style={{
+                  padding: "8px",
+                  wordBreak: "break-word",
+                }}
+              >
+                {value}
+              </td>
+            </tr>
+          ))}
+
+          {/* Vai trò */}
+          <tr>
+            <th
+              style={{
+                textAlign: "left",
+                padding: "8px",
+                fontWeight: 500,
+                backgroundColor: "#f5f5f5",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Vai trò
+            </th>
+            <td style={{ padding: "8px" }}>
               {selectedUser.roles?.map(role => (
-                <Tag color={role.name === "ADMIN" ? "red" : "green"} key={role.name}>
+                <Tag
+                  key={role.name}
+                  color={role.name === "ADMIN" ? "red" : "green"}
+                  style={{
+                    fontSize: "0.85rem",
+                    padding: "0.2rem 0.5rem",
+                    borderRadius: 8,
+                    marginRight: 4,
+                  }}
+                >
                   {role.name}
                 </Tag>
               ))}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Modal>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  )}
+</Modal>
+
 
       {/* Make Admin Modal */}
       <Modal

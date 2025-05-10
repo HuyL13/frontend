@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, DatePicker, Tag, message, Spin, Tabs, Typography } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Select, Table, Button, Modal, Form, Input, DatePicker, Tag, message, Spin, Tabs, Typography, Row, Col, Card } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const { RangePicker } = DatePicker;
 const { TabPane } = Tabs;
 const { Title } = Typography;
+const { Option } = Select;
 const API_BASE_URL = 'http://localhost:22986/demo';
-
-
 
 const Contribute = () => {
   const [contributions, setContributions] = useState([]);
@@ -16,9 +16,54 @@ const Contribute = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedContribution, setSelectedContribution] = useState(null);
   const [form] = Form.useForm();
+  const [searchForm] = Form.useForm();
   const [contributionRecords, setContributionRecords] = useState([]);
   const [selectedContributionId, setSelectedContributionId] = useState(null);
   const [recordsLoading, setRecordsLoading] = useState(false);
+  const [searchCriteria, setSearchCriteria] = useState({
+    id: null,
+    userId: null,
+    contributionId: null,
+    amount: null,
+    contributedAt: null,
+    approved: null
+  });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  const [searchPagination, setSearchPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
+
+  // Xử lý thay đổi phân trang cho tab tìm kiếm
+  const handleSearchTableChange = (pagination, filters, sorter) => {
+    const params = {
+      page: pagination.current - 1,
+      size: pagination.pageSize,
+      sort: `${sorter.field || 'id'},${sorter.order === 'ascend' ? 'asc' : 'desc'}`
+    };
+    
+    setSearchPagination(pagination);
+    handleSearchRecords(params);
+  };
+  
+  const handleTableChange = (pagination, filters, sorter) => {
+    const params = {
+      page: pagination.current - 1,
+      size: pagination.pageSize
+    };
+    
+    if (sorter.field) {
+      params.sort = `${sorter.field},${sorter.order === 'ascend' ? 'asc' : 'desc'}`;
+    }
+    
+    setPagination(pagination);
+    handleSearchRecords(params);
+  };
 
   useEffect(() => {
     fetchData();
@@ -128,6 +173,7 @@ const Contribute = () => {
       setRecordsLoading(false);
     }
   };
+
   const contributionColumns = [
     {
       title: 'Title',
@@ -171,39 +217,18 @@ const Contribute = () => {
           <Button type="link" danger onClick={() => handleDelete(record.id)}>
             Delete
           </Button>
+          <Button 
+            type="link" 
+            onClick={() => {
+              setSelectedContributionId(record.id);
+              fetchContributionRecords(record.id);
+            }}
+          >
+            View Records
+          </Button>
         </>
       )
-    },
-
-    {
-        title: 'Actions',
-        render: (_, record) => (
-          <>
-            <Button type="link" onClick={() => {
-              setSelectedContribution(record);
-              form.setFieldsValue({
-                ...record,
-                dates: [moment(record.startDate), moment(record.endDate)]
-              });
-              setModalVisible(true);
-            }}>
-              Edit
-            </Button>
-            <Button type="link" danger onClick={() => handleDelete(record.id)}>
-              Delete
-            </Button>
-            <Button 
-              type="link" 
-              onClick={() => {
-                setSelectedContributionId(record.id);
-                fetchContributionRecords(record.id);
-              }}
-            >
-              View Records
-            </Button>
-          </>
-        )
-      }
+    }
   ];
 
   const pendingRecordsColumns = [
@@ -236,12 +261,24 @@ const Contribute = () => {
     }
   ];
 
-
   const contributionRecordsColumns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      sorter: true
+    },
     {
       title: 'User ID',
       dataIndex: 'userId',
       key: 'userId',
+      sorter: true
+    },
+    {
+      title: 'Contribution ID',
+      key: 'contributionId',
+      render: (_, record) => record.contribution.id,
+      sorter: true
     },
     {
       title: 'Amount',
@@ -263,8 +300,148 @@ const Contribute = () => {
       )
     }
   ];
+
+  const handleSearchRecords = useCallback(async (params = {}) => {
+    try {
+      setSearchLoading(true);
+      const token = localStorage.getItem("authToken");
+      const queryParams = new URLSearchParams({
+        page: params.page || searchPagination.current - 1,
+        size: params.size || searchPagination.pageSize,
+        sort: params.sort || 'id,desc'
+      });
+
+      const response = await fetch(
+        `${API_BASE_URL}/search/contributionRecords?${queryParams}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(searchCriteria)
+        }
+      );
+
+      const data = await response.json();
+      setSearchResults(data.content);
+      setSearchPagination({
+        current: (params.page || 0) + 1,
+        pageSize: params.size || 10,
+        total: data.totalElements
+      });
+    } catch (error) {
+      message.error('Error searching records');
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [searchCriteria, searchPagination.current, searchPagination.pageSize]);
+
+  const handleSearchFormFinish = (values) => {
+    const formattedValues = {
+      id: values.id || null,
+      userId: values.userId || null,
+      contributionId: values.contributionId || null,
+      amount: values.amount || null,
+      approved: values.approved,
+      startDate: values.dateRange?.[0]?.format('YYYY-MM-DD') || null,
+      endDate: values.dateRange?.[1]?.format('YYYY-MM-DD') || null
+    };
+    
+    setSearchCriteria(formattedValues);
+    handleSearchRecords();
+    setIsSearchModalVisible(false);
+  };
+
+  const resetSearchForm = () => {
+    searchForm.resetFields();
+    setSearchCriteria({
+      id: null,
+      userId: null,
+      contributionId: null,
+      amount: null,
+      contributedAt: null,
+      approved: null
+    });
+  };
+
+  const SearchModal = () => (
+    <Modal
+      title="Advanced Search"
+      visible={isSearchModalVisible}
+      onCancel={() => setIsSearchModalVisible(false)}
+      footer={[
+        <Button key="reset" onClick={resetSearchForm}>
+          Reset
+        </Button>,
+        <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
+          Cancel
+        </Button>,
+        <Button
+          key="search"
+          type="primary"
+          onClick={() => searchForm.submit()}
+        >
+          Search
+        </Button>
+      ]}
+      width={800}
+    >
+      <Form 
+        form={searchForm}
+        layout="vertical"
+        onFinish={handleSearchFormFinish}
+        initialValues={{
+          id: searchCriteria.id,
+          userId: searchCriteria.userId,
+          contributionId: searchCriteria.contributionId,
+          amount: searchCriteria.amount,
+          approved: searchCriteria.approved,
+          dateRange: searchCriteria.startDate && searchCriteria.endDate ? 
+            [moment(searchCriteria.startDate), moment(searchCriteria.endDate)] : undefined
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Record ID" name="id">
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item label="User ID" name="userId">
+              <Input type="number" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Contribution ID" name="contributionId">
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item label="Amount" name="amount">
+              <Input type="number" />
+            </Form.Item>
+          </Col>
+        </Row>
+        
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Approval Status" name="approved">
+              <Select allowClear>
+                <Option value="true">Approved</Option>
+                <Option value="false">Pending</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Contribution Date" name="dateRange">
+              <DatePicker.RangePicker showTime />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Form>
+    </Modal>
+  );
+
   return (
     <div className="p-4">
+      <SearchModal />
       <div className="mb-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold">Contribution Management</h1>
         <Button type="primary" onClick={() => {
@@ -295,6 +472,79 @@ const Contribute = () => {
               rowKey="id"
               bordered
             />
+          </Spin>
+        </TabPane>
+
+        <TabPane 
+          tab={
+            <span className="flex items-center">
+              <SearchOutlined className="mr-1" />
+              Search Records
+            </span>
+          } 
+          key="4"
+        >
+          <Card
+            className="search-results-card"
+            extra={
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={() => setIsSearchModalVisible(true)}
+              >
+                Advanced Search
+              </Button>
+            }
+          >
+            <Table
+              columns={contributionRecordsColumns}
+              dataSource={searchResults}
+              rowKey="id"
+              loading={searchLoading}
+              pagination={{
+                ...searchPagination,
+                showSizeChanger: true,
+                showTotal: total => `Total ${total} items`,
+                pageSizeOptions: ['10', '20', '50']
+              }}
+              onChange={handleSearchTableChange}
+              bordered
+              scroll={{ x: 1300 }}
+            />
+          </Card>
+        </TabPane>
+        
+        <TabPane tab="Contribution Records" key="3">
+          <Spin spinning={recordsLoading}>
+            {selectedContributionId && (
+              <>
+                <div className="mb-4">
+                  <Button 
+                    type="link" 
+                    onClick={() => {
+                      setSelectedContributionId(null);
+                      setContributionRecords([]);
+                    }}
+                  >
+                    ← Back to all contributions
+                  </Button>
+                  <Title level={4} className="mt-2">
+                    Records for Contribution #{selectedContributionId}
+                  </Title>
+                </div>
+                <Table
+                  columns={contributionRecordsColumns}
+                  dataSource={contributionRecords}
+                  rowKey="id"
+                  bordered
+                />
+              </>
+            )}
+            {!selectedContributionId && (
+              <div className="text-gray-500">
+                Select a contribution from the list to view its records
+              </div>
+            )}
           </Spin>
         </TabPane>
       </Tabs>
@@ -356,44 +606,6 @@ const Contribute = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      <Tabs defaultActiveKey="1" activeKey={selectedContributionId ? '3' : undefined}>
-        {/* Existing TabPanes */}
-        
-        <TabPane tab="Contribution Records" key="3">
-          <Spin spinning={recordsLoading}>
-            {selectedContributionId && (
-              <>
-                <div className="mb-4">
-                  <Button 
-                    type="link" 
-                    onClick={() => {
-                      setSelectedContributionId(null);
-                      setContributionRecords([]);
-                    }}
-                  >
-                    ← Back to all contributions
-                  </Button>
-                  <Title level={4} className="mt-2">
-                    Records for Contribution #{selectedContributionId}
-                  </Title>
-                </div>
-                <Table
-                  columns={contributionRecordsColumns}
-                  dataSource={contributionRecords}
-                  rowKey="id"
-                  bordered
-                />
-              </>
-            )}
-            {!selectedContributionId && (
-              <div className="text-gray-500">
-                Select a contribution from the list to view its records
-              </div>
-            )}
-          </Spin>
-        </TabPane>
-      </Tabs>
     </div>
   );
 };

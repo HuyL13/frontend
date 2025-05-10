@@ -98,7 +98,7 @@ const GuestManagement = () => {
   };
 
   if (loading) {
-    return <div className="loading">Đang tải...</div>;
+    return <div className="loading">.</div>;
   }
 
   if (error) {

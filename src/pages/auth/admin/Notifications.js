@@ -277,7 +277,7 @@ const Notifications = () => {
           </Button>
           <Button 
             onClick={openSendSpecificModal}
-            className="bg-green-500 hover:bg-green-600 text-white"
+            className="bg-green-500 hover:bg-green-600 text-green"
           >
             Send to Specific Users
           </Button>
@@ -365,9 +365,7 @@ const Notifications = () => {
             >
               <Option value="INFORMATION">Information</Option>
               <Option value="WARNING">Warning</Option>
-              <Option value="URGENT">Urgent</Option>
-              <Option value="MAINTENANCE">Maintenance</Option>
-              <Option value="EVENT">Event</Option>
+              
             </Select>
           </Form.Item>
 
@@ -430,9 +428,7 @@ const Notifications = () => {
             >
               <Option value="INFORMATION">Information</Option>
               <Option value="WARNING">Warning</Option>
-              <Option value="URGENT">Urgent</Option>
-              <Option value="MAINTENANCE">Maintenance</Option>
-              <Option value="EVENT">Event</Option>
+              
             </Select>
           </Form.Item>
 

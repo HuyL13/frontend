@@ -4,6 +4,7 @@ import { Table, Button, Modal, Form, Input, Select, Tag, Spin, message, Tooltip,
 import { ExclamationCircleOutlined, CarOutlined, ReloadOutlined, PlusOutlined, SwapOutlined, UserOutlined, NumberOutlined, IdcardOutlined } from '@ant-design/icons';
 import carImage from './vehicle/car_top_view.jpg';
 import motorbikeImage from './vehicle/motor_top_view.png';
+import "../../../styles/Vehicle.css";
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -26,7 +27,10 @@ const Vehicle = () => {
   const [form] = Form.useForm();
   const [assignForm] = Form.useForm();
   const [registerAssignForm] = Form.useForm();
+
   
+  const [selectedOccupiedLot, setSelectedOccupiedLot] = useState(null);
+const [modalVisible, setModalVisible] = useState(false);
   // Define standard parking lot layout dimensions
   const carRowCount = 4;
   const carColCount = 4;
@@ -86,46 +90,38 @@ const Vehicle = () => {
     }
   };
 
-  const handleUnassign = async (vehicleId) => {
-    try {
-      // Kiểm tra điều kiện tiên quyết
-      if (!vehicleId) throw new Error("Invalid vehicle ID");
-      if (!selectedLot?.id) throw new Error("No parking lot selected");
-  
-      // Gọi API trực tiếp không qua confirm
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        `http://localhost:22986/demo/admin/api/parking-lots/unassign-vehicle/${vehicleId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          }
+  const handleUnassign = async (vehicleId, lotId) => {
+  try {
+    // Thông báo xác nhận bằng alert (ko có Cancel)
+    alert('Bạn sắp huỷ gán xe khỏi bãi. Tiếp tục?');
+
+    const token = localStorage.getItem("authToken");
+    const response = await fetch(
+      `http://localhost:22986/demo/admin/api/parking-lots/unassign-vehicle/${vehicleId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${token}`,
         }
-      );
-  
-      // Xử lý response
-      if (response.status === 204) { // No Content
-        console.log("Unassignment successful");
-      } 
-      else if (response.ok) {
-        const data = await response.json();
-        console.log("Unassignment successful:", data);
-      } 
-      else {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Unassignment failed');
       }
-  
-      // Cập nhật UI
-      await fetchLotVehicles(selectedLot.id);
-      fetchParkingLots();
-  
-    } catch (error) {
-      console.error('Unassignment failed:', error.message);
-      message.error(error.message); // Hiển thị thông báo lỗi
+    );
+
+    if (response.status === 204 || response.ok) {
+      message.success('Vehicle unassigned successfully');
+    } else {
+      const errorText = await response.text();
+      throw new Error(errorText || 'Unassignment failed');
     }
-  };
+
+    // Cập nhật lại UI
+    await fetchLotVehicles(lotId);
+    fetchParkingLots();
+  } catch (error) {
+    message.error(error.message);
+  }
+};
+
+
   const handleCreateVehicle = async (values) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -340,71 +336,54 @@ const Vehicle = () => {
       },
       width: '15%',
     },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <>
-          <Button 
-            type="primary"
-            onClick={() => {
-              setSelectedLot(record);
-              fetchLotVehicles(record.id);
-            }}
-            style={{ marginRight: '8px' }}
-          >
-            View Details
-          </Button>
-          {!record.occupied && (
-            <Button 
-              type="default" 
-              onClick={() => {
-                setSelectedEmptyLot(record);
-                registerAssignForm.setFieldsValue({
-                  type: record.type
-                });
-                setRegisterAssignModal(true);
-              }}
-            >
-              Register & Assign
-            </Button>
-          )}
-        </>
-      ),
-      width: '25%',
-    }
+     {
+    title: 'Actions',
+    key: 'actions',
+    render: (_, record) => (
+      <Button 
+        danger 
+        onClick={() => handleUnassign(record.id)}
+      >
+        Unassign
+      </Button>
+    ),
+    width: '35%',
+  }
   ];
 
   const vehicleColumns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: '15%',
-    },
-    {
-      title: 'License Plate',
-      dataIndex: 'licensePlate',
-      key: 'licensePlate',
-      width: '30%',
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>,
-      width: '20%',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Button danger onClick={() => handleUnassign(record.id)}>
-          Unassign
-        </Button>
-      ),
-      width: '35%',
-    }
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: '15%',
+  },
+  {
+    title: 'License Plate',
+    dataIndex: 'licensePlate',
+    key: 'licensePlate',
+    width: '20%',
+  },
+  {
+    title: 'Type',
+    dataIndex: 'type',
+    key: 'type',
+    render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>,
+    width: '15%',
+  },
+  {
+    title: 'Actions',
+    key: 'actions',
+    render: (_, record) => (
+      <Button 
+        danger 
+        onClick={() => handleUnassign(record.id, selectedOccupiedLot?.id)}
+      >
+        Unassign
+      </Button>
+    ),
+    width: '25%',
+  }
   ];
 
   // Render visual parking lot representation
@@ -427,34 +406,38 @@ const Vehicle = () => {
         
         cells.push(
           <Tooltip 
-            title={
-              <>
-                <div><strong>Lot {lot.lotNumber}</strong> (ID: {lot.id})</div>
-                <div>Status: {lot.occupied ? 'Occupied' : 'Available'}</div>
-                {lot.occupied && lot.vehicleIds && lot.vehicleIds.length > 0 && (
-                  <div>Vehicle IDs: {lot.vehicleIds.join(', ')}</div>
-                )}
-                {!lot.occupied && <div>Click to register and assign a vehicle</div>}
-              </>
-            } 
-            key={lot.id}
-          >
+  title={
+    <>
+      <div><strong>Lot {lot.lotNumber}</strong> (ID: {lot.id})</div>
+      <div>Status: {lot.occupied ? 'Occupied' : 'Available'}</div>
+      {lot.occupied && lot.vehicleIds?.length > 0 && (
+        <div>Vehicle IDs: {lot.vehicleIds.join(', ')}</div>
+      )}
+      {lot.occupied && vehicleInfo?.licensePlate?.length > 0 && (
+        <div>License Plate(s): {vehicleInfo.licensePlate.join(', ')}</div>
+      )}
+      {!lot.occupied && <div>Click to register and assign a vehicle</div>}
+    </>
+  }
+  key={lot.id}
+>
+
             <div 
               className={`parking-cell ${lot.occupied ? 'occupied' : 'available'}`}
-              onClick={() => {
-                if (lot.occupied) {
-                  // If occupied, just view details
-                  setSelectedLot(lot);
-                  fetchLotVehicles(lot.id);
-                } else {
-                  // If available, open register and assign modal
-                  setSelectedEmptyLot(lot);
-                  registerAssignForm.setFieldsValue({
-                    type: lot.type
-                  });
-                  setRegisterAssignModal(true);
-                }
-              }}
+              // Trong hàm renderParkingLot, thay đổi phần onClick của parking-cell
+onClick={() => {
+  if (lot.occupied) {
+    setSelectedOccupiedLot(lot);
+    fetchLotVehicles(lot.id);
+    setModalVisible(true);
+  } else {
+    setSelectedEmptyLot(lot);
+    registerAssignForm.setFieldsValue({
+      type: lot.type
+    });
+    setRegisterAssignModal(true);
+  }
+}}
             >
               <div className="lot-number">{lot.lotNumber}</div>
               <div className="lot-id">ID: {lot.id}</div>
@@ -785,6 +768,9 @@ const Vehicle = () => {
           </Form.Item>
         </Form>
       </Modal>
+      
+
+    
 
       {/* Register and Assign Vehicle Modal */}
       <Modal
@@ -831,6 +817,34 @@ const Vehicle = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      
+<Modal
+  title={`Vehicles in ${selectedOccupiedLot?.type} Lot ${selectedOccupiedLot?.lotNumber}`}
+  open={modalVisible}
+  onCancel={() => {
+    setModalVisible(false);
+    setSelectedOccupiedLot(null);
+  }}
+  footer={null}
+  width={800}
+>
+  <Spin spinning={loading}>
+    {lotVehicles.length > 0 ? (
+      <Table
+        columns={vehicleColumns}
+        dataSource={lotVehicles}
+        rowKey="id"
+        bordered
+        pagination={{ pageSize: 5 }}
+      />
+    ) : (
+      <div className="empty-message">
+        <Text type="secondary">No vehicles assigned to this lot</Text>
+      </div>
+    )}
+  </Spin>
+</Modal>
 
       <style jsx>{`
         .visual-parking-container {

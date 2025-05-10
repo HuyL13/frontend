@@ -55,37 +55,45 @@ const Complain = () => {
     fetchComplaints();
   }, [filters]);
 
-  // Handle resolve/update complaint
   const handleResolve = async (values) => {
+    console.log(values);
     try {
       const token = localStorage.getItem("authToken");
-      
+  
+      // Tạo query-string từ object
+      const params = new URLSearchParams({
+        response: values.response,
+        priority: values.priority,
+        status: values.status,
+      }).toString();
+  
       const response = await fetch(
-        `${API_BASE_URL}/admin/complains/${selectedComplaint.id}/resolve`,
+        `http://localhost:22986/demo/admin/complains/${selectedComplaint.id}/resolve?${params}`,
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            "Authorization": `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(values),
+          // Một số API PUT qua query ko cần body, nên bỏ body đi
         }
       );
-
+  
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Request failed with status ${response.status}`);
       }
-      
+  
       message.success('Complaint updated successfully');
       setIsResolveModalVisible(false);
-      fetchComplaints(); // Refresh list
+      fetchComplaints();
     } catch (err) {
       console.error('Error resolving complaint:', err);
       message.error(err.message || 'Failed to update complaint');
     }
   };
-
+  
+  
   // Handle delete complaint
   const handleDelete = async (id) => {
     try {
