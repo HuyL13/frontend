@@ -296,7 +296,12 @@ const NavbarAdmin = ({ username, handleLogout }) => {
               <nav id="main-menu-navigation" className="navigation-main">
                 <div className="nav-lavel" style={!sidebarOpen ? {display: 'none'} : {}}>Quản lý chính</div>
                 
-
+                <div className="nav-item active">
+                  <NavLink to="admin/notis" className="nav-link">
+                    <i className="ik ik-bell" ></i>
+                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Thông báo</span>
+                  </NavLink>
+                </div>
                 
 
                 <div className="nav-item active">
