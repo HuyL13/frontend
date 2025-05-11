@@ -40,7 +40,7 @@ const OTPSent = () => {
     setIsProcessing(true);
     try {
       const response = await fetch(
-        `http://localhost:22986/demo/auth/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp.join(""))}`,
+        `https://backend-13-6qob.onrender.com/demo/auth/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp.join(""))}`,
         { 
           method: "POST",
           headers: {

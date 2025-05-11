@@ -11,7 +11,7 @@ const GuestManagement = () => {
     const fetchGuests = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('http://localhost:22986/demo/users/admin/guest', {
+        const response = await fetch('https://backend-13-6qob.onrender.com/demo/users/admin/guest', {
           method: "GET",
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -42,7 +42,7 @@ const GuestManagement = () => {
 
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `http://localhost:22986/demo/users/admin/activate?email=${encodeURIComponent(email)}`,
+        `https://backend-13-6qob.onrender.com/demo/users/admin/activate?email=${encodeURIComponent(email)}`,
         {
           method: 'POST',
           headers: {
@@ -80,7 +80,7 @@ const GuestManagement = () => {
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:22986/demo/users/admin/guest/${guestId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/admin/guest/${guestId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

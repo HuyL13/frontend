@@ -29,7 +29,7 @@ const Reset = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:22986/demo/auth/reset-password?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}&newPassword=${encodeURIComponent(newPassword)}`,
+        `https://backend-13-6qob.onrender.com/demo/auth/reset-password?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}&newPassword=${encodeURIComponent(newPassword)}`,
         {
           method: "POST",
           headers: {

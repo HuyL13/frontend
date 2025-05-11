@@ -9,7 +9,7 @@ const Account = () => {
     const fetchUserInfo = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('http://localhost:22986/demo/users/my-info', {
+        const response = await fetch('https://backend-13-6qob.onrender.com/demo/users/my-info', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
