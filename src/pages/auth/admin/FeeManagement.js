@@ -1,13 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import '../../../styles/FeeManagement.css';
-import { 
-  SearchOutlined,
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  UploadOutlined 
-} from '@ant-design/icons';
 import { 
   Table, 
   Button, 
@@ -21,31 +12,40 @@ import {
   Row,
   Col,
   Tag,
-  Tabs
+  Tabs,
+  Card,
+  Space,
+  Divider,
+  Typography
 } from 'antd';
+import { 
+  SearchOutlined,
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  UploadOutlined,
+  ExclamationCircleOutlined
+} from '@ant-design/icons';
 import moment from 'moment';
 
-const { Column } = Table;
-const { Option } = Select;
 const { TabPane } = Tabs;
+const { Title } = Typography;
+const { Option } = Select;
+const { confirm } = Modal;
 
 const FeeManagement = () => {
   const [fees, setFees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedFee, setSelectedFee] = useState(null);
-  const [newFee, setNewFee] = useState({
-    roomNumber: '',
-    description: '',
-    amount: '',
-    dueDate: ''
-  });
-
+  
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   
   const [form] = Form.useForm();
+  const [addForm] = Form.useForm();
+  const [editForm] = Form.useForm();
   const [searchForm] = Form.useForm();
   const [uploadForm] = Form.useForm();
 
@@ -55,13 +55,59 @@ const FeeManagement = () => {
     minAmount: null,
     maxAmount: null,
     dueDate: null,
-    status: 'PAID' 
+    status: 'PAID'
   });
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
+  
+  const [pagination, setPagination] = useState({ 
+    current: 1, 
+    pageSize: 10, 
+    total: 0,
+    showSizeChanger: true,
+    pageSizeOptions: ['10', '20', '50']
+  });
+  
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  
+
+  // Helper function to get today's date in YYYY-MM-DD format
+  const getTodayDateString = () => {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  };
+
+  // Fetch all fees
+  const fetchFees = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:22986/demo/admin/fees', {
+        mode: 'cors',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch fees');
+
+      const data = await response.json();
+      setFees(data);
+    } catch (err) {
+      notification.error({
+        message: 'Error',
+        description: err.message || 'Failed to fetch fees'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFees();
+  }, []);
+
   const handleTableChange = (pagination, filters, sorter) => {
     const sortField = sorter.field || 'dueDate';
     const sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
@@ -79,18 +125,18 @@ const FeeManagement = () => {
   const handleSearchSubmit = () => {
     const formValues = searchForm.getFieldsValue();
     
-    // Cập nhật search criteria và thực hiện tìm kiếm ngay lập tức
+    // Update search criteria and perform search immediately
     setSearchCriteria(prev => {
       const newCriteria = {
         roomNumber: formValues.roomNumber || '',
         description: formValues.description || '',
         minAmount: formValues.minAmount ? Number(formValues.minAmount) : null,
         maxAmount: formValues.maxAmount ? Number(formValues.maxAmount) : null,
-        dueDate: formValues.dueDate,
+        dueDate: formValues.dueDate || null,
         status: formValues.status || 'PAID'
       };
       
-      // Gọi API search ngay sau khi cập nhật state
+      // Call API search right after updating state
       handleSearchFees({ page: 0 }, newCriteria);
       return newCriteria;
     });
@@ -109,12 +155,10 @@ const FeeManagement = () => {
         sort: params.sort || 'dueDate,desc'
       });
   
-      // Sử dụng criteria từ tham số thay vì state
+      // Use criteria from parameters instead of state
       const formattedCriteria = {
         ...criteria,
-        dueDate: criteria.dueDate 
-          ? moment(criteria.dueDate).format('YYYY-MM-DD') 
-          : null,
+        dueDate: criteria.dueDate || null,
         minAmount: criteria.minAmount ? Number(criteria.minAmount) : null,
         maxAmount: criteria.maxAmount ? Number(criteria.maxAmount) : null
       };
@@ -148,47 +192,25 @@ const FeeManagement = () => {
       setSearchLoading(false);
     }
   };
-  // Fetch all fees
-  const fetchFees = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:22986/demo/admin/fees', {
-        mode: 'cors',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
 
-      if (!response.ok) throw new Error('Failed to fetch fees');
-
-      const data = await response.json();
-      console.log(data);
-      setFees(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  // Format date string to YYYY-MM-DD for the API
+  const formatDateForApi = (dateString) => {
+    if (!dateString) return null;
+    return dateString;
   };
 
-  useEffect(() => {
-    fetchFees();
-  }, []);
-
   // Handle adding new fee
-  const handleAddFee = async (e) => {
-    e.preventDefault();
+  const handleAddFee = async (values) => {
     try {
       const token = localStorage.getItem('authToken');
       
       // Create URL with query parameters
       const apiUrl = new URL('http://localhost:22986/demo/admin/fees/add');
       const params = {
-        roomNumber: newFee.roomNumber,
-        description: newFee.description,
-        amount: Number(newFee.amount).toFixed(1),
-        dueDate: newFee.dueDate
+        roomNumber: values.roomNumber,
+        description: values.description,
+        amount: Number(values.amount).toFixed(1),
+        dueDate: formatDateForApi(values.dueDate)
       };
 
       // Add parameters to URL
@@ -209,14 +231,21 @@ const FeeManagement = () => {
         throw new Error(errorData.message || 'Failed to add fee');
       }
 
+      notification.success({
+        message: 'Success',
+        description: 'Fee added successfully'
+      });
+
       // Update UI
       setShowAddModal(false);
-      setNewFee({ roomNumber: '', description: '', amount: '', dueDate: '' });
-      await fetchFees();
+      addForm.resetFields();
+      fetchFees();
 
     } catch (err) {
-      setError(err.message);
-      setTimeout(() => setError(''), 5000);
+      notification.error({
+        message: 'Error',
+        description: err.message || 'Failed to add fee'
+      });
     }
   };
 
@@ -245,21 +274,29 @@ const FeeManagement = () => {
       setFees(fees.map(fee => 
         fee.id === feeId ? { ...fee, status: newStatus } : fee
       ));
+      
+      notification.success({
+        message: 'Success',
+        description: 'Fee status updated successfully'
+      });
     } catch (err) {
-      setError(err.message);
-      setTimeout(() => setError(''), 5000);
+      notification.error({
+        message: 'Error',
+        description: err.message || 'Failed to update status'
+      });
     }
   };
 
   // Update fee information
-  const handleUpdateFee = async (e) => {
-    e.preventDefault();
+  const handleUpdateFee = async (values) => {
     try {
       const token = localStorage.getItem('authToken');
       const updatedFee = {
         ...selectedFee,
-        amount: Number(selectedFee.amount),
-        dueDate: new Date(selectedFee.dueDate).toISOString()
+        roomNumber: values.roomNumber,
+        description: values.description,
+        amount: Number(values.amount),
+        dueDate: formatDateForApi(values.dueDate)
       };
       
       const response = await fetch(
@@ -277,18 +314,27 @@ const FeeManagement = () => {
 
       if (!response.ok) throw new Error('Failed to update fee');
 
+      notification.success({
+        message: 'Success',
+        description: 'Fee updated successfully'
+      });
+      
       setShowEditModal(false);
-      await fetchFees();
+      fetchFees();
     } catch (err) {
-      setError(err.message);
-      setTimeout(() => setError(''), 5000);
+      notification.error({
+        message: 'Error',
+        description: err.message || 'Failed to update fee'
+      });
     }
   };
 
-  // Delete fee
+  // Delete fee with browser confirm
   const handleDeleteFee = async (feeId) => {
-    if (!window.confirm('Are you sure you want to delete this fee?')) return;
-    
+    // Hỏi lại người dùng
+    const ok = window.confirm('Are you sure you want to delete this fee?');
+    if (!ok) return;  // nếu nhấn Cancel thì dừng
+
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
@@ -307,10 +353,13 @@ const FeeManagement = () => {
         throw new Error(errorData.message || 'Failed to delete fee');
       }
 
+      // Cập nhật lại state fees
       setFees(prevFees => prevFees.filter(fee => fee.id !== feeId));
+      
+      // Thông báo thành công
+      alert('Fee deleted successfully');
     } catch (err) {
-      setError(err.message);
-      setTimeout(() => setError(''), 5000);
+      alert(`Error: ${err.message || 'Failed to delete fee'}`);
     }
   };
 
@@ -320,7 +369,7 @@ const FeeManagement = () => {
       const token = localStorage.getItem('authToken');
       const formData = new FormData();
       formData.append('description', values.description);
-      formData.append('dueDate', values.dueDate.format('YYYY-MM-DD'));
+      formData.append('dueDate', formatDateForApi(values.dueDate));
       formData.append('status', 'UNPAID');
       formData.append('feeType', values.feeType);
       formData.append('file', values.file.file);
@@ -332,17 +381,23 @@ const FeeManagement = () => {
       });
 
       if (!response.ok) throw new Error('Failed to upload fees');
-      notification.success({ message: 'Success', description: 'Fees uploaded successfully' });
+      
+      notification.success({ 
+        message: 'Success', 
+        description: 'Fees uploaded successfully' 
+      });
+      
       setShowUploadModal(false);
+      uploadForm.resetFields();
       fetchFees();
     } catch (error) {
-      notification.error({ message: 'Error', description: error.message });
+      notification.error({ 
+        message: 'Error', 
+        description: error.message || 'Failed to upload fees' 
+      });
     }
   };
 
-  if (loading) return <div className="loading">.</div>;
-  if (error) return <div className="error">Error: {error}</div>;
-  
   const columns = [
     {
       title: 'Số phòng',
@@ -376,21 +431,37 @@ const FeeManagement = () => {
       dataIndex: 'status',
       key: 'status',
       sorter: true,
-      render: status => (
-        <Tag color={status === 'PAID' ? 'green' : 'red'}>
-          {status === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'}
-        </Tag>
+      render: (status, record) => (
+        <Select
+          value={status}
+          style={{ width: 150 }}
+          onChange={(value) => handleStatusChange(record.id, value)}
+          dropdownMatchSelectWidth={false}
+        >
+          <Option value="PAID">
+            <Tag color="green">Đã thanh toán</Tag>
+          </Option>
+          <Option value="UNPAID">
+            <Tag color="red">Chưa thanh toán</Tag>
+          </Option>
+        </Select>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <div className="btn-group">
+        <Space>
           <Button
             icon={<EditOutlined />}
             onClick={() => {
               setSelectedFee(record);
+              editForm.setFieldsValue({
+                roomNumber: record.roomNumber,
+                description: record.description,
+                amount: record.amount,
+                dueDate: record.dueDate
+              });
               setShowEditModal(true);
             }}
             title="Chỉnh sửa"
@@ -398,155 +469,94 @@ const FeeManagement = () => {
           <Button
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteFee(record.id)}
-            title="Xóa khoản thu"
             danger
+            title="Xóa khoản thu"
           />
-        </div>
+        </Space>
       )
     }
   ];
 
   return (
     <div className="fee-management">
-      <div className="d-flex justify-content-end mb-3">
-        <Button 
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setShowAddModal(true)}
-          className="mr-2"
-        >
-          Thêm khoản thu
-        </Button>
-        
-        <Button 
-          type="primary"
-          icon={<UploadOutlined />}
-          onClick={() => setShowUploadModal(true)}
-        >
-          Upload Excel
-        </Button>
-      </div>
-      
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Danh sách khoản thu" key="1">
-          <div className="card table-card">
-            <div className="card-header">
-              <h3>Danh sách khoản thu</h3>
-              <div className="card-header-right">
-                <ul className="list-unstyled card-option">
-                  <li><i className="ik ik-chevron-left action-toggle"></i></li>
-                  <li><i className="ik ik-minus minimize-card"></i></li>
-                  <li>
-                    <div 
-                      className="add-fee" 
-                      onClick={() => setShowAddModal(true)}
-                      title="Thêm khoản thu mới"
-                    >
-                      <i className="ik ik-plus text-primary"></i>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="card-block">
-              <div className="table-responsive">
-                <table className="table table-hover mb-0">
-                  <thead>
-                    <tr>
-                      <th>Tên phòng</th>
-                      <th>Tên khoản phí</th>
-                      <th>Số tiền cần thu</th>
-                      <th>Hạn thu</th>
-                      <th>Trạng thái</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fees.map(fee => (
-                      <tr key={fee.id}>
-                        <td>Phòng {fee.roomNumber}</td>
-                        <td>{fee.description}</td>
-                        <td>{Number(fee.amount).toLocaleString()}vnd</td>
-                        <td>{format(new Date(fee.dueDate), 'dd/MM/yyyy')}</td>
-                        <td>
-                          <select 
-                            value={fee.status} 
-                            onChange={(e) => handleStatusChange(fee.id, e.target.value)}
-                            className={`status-select ${fee.status.toLowerCase()}`}
-                          >
-                            <option value="UNPAID">Unpaid</option>
-                            <option value="PAID">Paid</option>
-                          </select>
-                        </td>
-                        <td>
-                          <div className="btn-group">
-                            <button
-                              className="btn btn-icon"
-                              onClick={() => {
-                                setSelectedFee(fee);
-                                setShowEditModal(true);
-                              }}
-                              title="Chỉnh sửa"
-                            >
-                              <i className="ik ik-edit-2 f-16 text-primary"></i>
-                            </button>
-                            <button
-                              className="btn btn-icon"
-                              onClick={() => handleDeleteFee(fee.id)}
-                              title="Xóa khoản thu"
-                            >
-                              <i className="ik ik-trash-2 f-16 text-danger"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </TabPane>
-        
-        <TabPane tab="Kết quả tìm kiếm" key="2">
-          <div className="mb-4">
-          <Button 
-  type="primary" 
-  onClick={() => {
-    // Reset form với giá trị hiện tại trước khi mở modal
-    searchForm.setFieldsValue({
-      roomNumber: searchCriteria.roomNumber,
-      description: searchCriteria.description,
-      minAmount: searchCriteria.minAmount,
-      maxAmount: searchCriteria.maxAmount,
-      dueDate: searchCriteria.dueDate ? moment(searchCriteria.dueDate) : null,
-      status: searchCriteria.status
-    });
-    setIsSearchModalVisible(true);
-  }}
-  icon={<SearchOutlined />}
->
-  Tìm kiếm nâng cao
-</Button>
-          </div>
-          
-          <Table
-            columns={columns}
-            dataSource={searchResults}
-            rowKey="id"
-            loading={searchLoading}
-            pagination={{
-              ...pagination,
-              showSizeChanger: true,
-              pageSizeOptions: ['10', '20', '50']
-            }}
-            onChange={handleTableChange}
-            bordered
-          />
-        </TabPane>
-      </Tabs>
+      <Row gutter={[16, 16]}>
+        <Col span={24}>
+          <Card>
+            <Space style={{ marginBottom: 16, float: 'right' }}>
+              <Button 
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setShowAddModal(true)}
+              >
+                Thêm khoản thu
+              </Button>
+              
+              <Button 
+                type="primary"
+                icon={<UploadOutlined />}
+                onClick={() => setShowUploadModal(true)}
+              >
+                Upload Excel
+              </Button>
+            </Space>
+            
+            <Tabs defaultActiveKey="1">
+              <TabPane tab="Danh sách khoản thu" key="1">
+                <Card
+                  title={<Title level={4}>Danh sách khoản thu</Title>}
+                  bordered={false}
+                >
+                  <Table
+                    dataSource={fees}
+                    columns={columns}
+                    rowKey="id"
+                    loading={loading}
+                    pagination={{
+                      pageSize: 10,
+                      showSizeChanger: true,
+                      pageSizeOptions: ['10', '20', '50']
+                    }}
+                  />
+                </Card>
+              </TabPane>
+              
+              <TabPane tab="Kết quả tìm kiếm" key="2">
+                <div style={{ marginBottom: 16 }}>
+                  <Button 
+                    type="primary" 
+                    onClick={() => {
+                      searchForm.setFieldsValue({
+                        roomNumber: searchCriteria.roomNumber,
+                        description: searchCriteria.description,
+                        minAmount: searchCriteria.minAmount,
+                        maxAmount: searchCriteria.maxAmount,
+                        dueDate: searchCriteria.dueDate,
+                        status: searchCriteria.status
+                      });
+                      setIsSearchModalVisible(true);
+                    }}
+                    icon={<SearchOutlined />}
+                  >
+                    Tìm kiếm nâng cao
+                  </Button>
+                </div>
+                
+                <Table
+                  columns={columns}
+                  dataSource={searchResults}
+                  rowKey="id"
+                  loading={searchLoading}
+                  pagination={pagination}
+                  onChange={handleTableChange}
+                  bordered
+                />
+              </TabPane>
+            </Tabs>
+          </Card>
+        </Col>
+      </Row>
 
-      {/* Search Modal - Use preserve to keep form state between renders */}
+      {/* Search Modal */}
       <Modal
         title="Tìm kiếm nâng cao"
         visible={isSearchModalVisible}
@@ -560,22 +570,20 @@ const FeeManagement = () => {
           </Button>,
         ]}
         centered
-        forceRender
-        destroyOnClose={false} // Preserve modal state
-        maskClosable={false} // Prevent closing when clicking outside
+        destroyOnClose={false}
       >
         <Form 
           form={searchForm} 
           layout="vertical" 
           initialValues={{ status: 'PAID' }}
-          preserve={true} // Important to preserve form state
+          preserve={true}
         >
           <Form.Item label="Số phòng" name="roomNumber">
-            <Input />
+            <Input placeholder="Nhập số phòng" />
           </Form.Item>
           
           <Form.Item label="Mô tả" name="description">
-            <Input />
+            <Input placeholder="Nhập mô tả" />
           </Form.Item>
 
           <Row gutter={16}>
@@ -583,7 +591,8 @@ const FeeManagement = () => {
               <Form.Item label="Số tiền tối thiểu" name="minAmount">
                 <Input
                   type="number"
-                  min={0}
+                  min={1001}
+                  placeholder="Nhập số tiền tối thiểu"
                 />
               </Form.Item>
             </Col>
@@ -592,20 +601,28 @@ const FeeManagement = () => {
                 <Input
                   type="number"
                   min={0}
+                  placeholder="Nhập số tiền tối đa"
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <Form.Item label="Ngày hết hạn" name="dueDate">
-            <DatePicker
-              format="DD/MM/YYYY"
-              style={{ width: '100%' }}
+          <Form.Item
+            label="Ngày hết hạn"
+            name="dueDate"
+          >
+            <Input
+              type="date"
+              className="ant-input"
+              min={getTodayDateString()}
+              onChange={(e) => {
+                form.setFieldsValue({ dueDate: e.target.value });
+              }}
             />
           </Form.Item>
 
           <Form.Item label="Trạng thái" name="status">
-            <Select allowClear>
+            <Select placeholder="Chọn trạng thái" allowClear>
               <Option value="PAID">Đã thanh toán</Option>
               <Option value="UNPAID">Chưa thanh toán</Option>
             </Select>
@@ -614,63 +631,142 @@ const FeeManagement = () => {
       </Modal>
 
       {/* Add Fee Modal */}
-      {showAddModal && (
-        <div className="modal" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <span 
-              className="close" 
-              onClick={() => setShowAddModal(false)}
-              role="button" 
-              tabIndex={0}
+      <Modal
+        title="Thêm mới khoản thu"
+        visible={showAddModal}
+        onCancel={() => setShowAddModal(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form 
+          form={addForm} 
+          layout="vertical" 
+          onFinish={handleAddFee}
+        >
+          <Form.Item 
+            name="roomNumber" 
+            label="Số phòng" 
+            rules={[{ required: true, message: 'Vui lòng nhập số phòng!' }]}
+          >
+            <Input placeholder="Nhập số phòng" />
+          </Form.Item>
+          
+          <Form.Item 
+            name="description" 
+            label="Mô tả" 
+            rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+          >
+            <Input placeholder="Nhập mô tả khoản thu" />
+          </Form.Item>
+          
+          <Form.Item 
+            name="amount" 
+            label="Số tiền" 
+            rules={[{ required: true, message: 'Vui lòng nhập số tiền!' }]}
+          >
+            <Input 
+              type="number" 
+              min={1001} 
+              step="1000" 
+              placeholder="Nhập số tiền" 
+              suffix="VND" 
+            />
+          </Form.Item>
+          
+          <Form.Item 
+            name="dueDate" 
+            label="Hạn thanh toán" 
+            rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+          >
+            <Input 
+              type="date"
+              min={getTodayDateString()}
+              className="ant-input"
+            />
+          </Form.Item>
+          
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Thêm mới
+              </Button>
+              <Button onClick={() => setShowAddModal(false)}>
+                Hủy
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit Fee Modal */}
+      <Modal
+        title="Chỉnh sửa khoản thu"
+        visible={showEditModal}
+        onCancel={() => setShowEditModal(false)}
+        footer={null}
+        destroyOnClose
+      >
+        {selectedFee && (
+          <Form 
+            form={editForm}
+            layout="vertical" 
+            onFinish={handleUpdateFee}
+          >
+            <Form.Item 
+              name="roomNumber" 
+              label="Số phòng" 
+              rules={[{ required: true, message: 'Vui lòng nhập số phòng!' }]}
             >
-              &times;
-            </span>
-            <h3>Add New Fee</h3>
-            <form onSubmit={handleAddFee}>
-              <input
-                type="text"
-                placeholder="Room Number"
-                value={newFee.roomNumber}
-                onChange={(e) => setNewFee({ ...newFee, roomNumber: e.target.value })}
-                required
+              <Input placeholder="Nhập số phòng" />
+            </Form.Item>
+            
+            <Form.Item 
+              name="description" 
+              label="Mô tả" 
+              rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }]}
+            >
+              <Input placeholder="Nhập mô tả khoản thu" />
+            </Form.Item>
+            
+            <Form.Item 
+              name="amount" 
+              label="Số tiền" 
+              rules={[{ required: true, message: 'Vui lòng nhập số tiền!' }]}
+            >
+              <Input 
+                type="number" 
+                min={0} 
+                step="0.01" 
+                placeholder="Nhập số tiền" 
+                suffix="VND" 
               />
-              <input
-                type="text"
-                placeholder="Description"
-                value={newFee.description}
-                onChange={(e) => setNewFee({ ...newFee, description: e.target.value })}
-                required
-              />
-              <input
-                type="number"
-                placeholder="Amount"
-                value={newFee.amount}
-                onChange={(e) => setNewFee({ ...newFee, amount: e.target.value })}
-                step="0.01"
-                required
-              />
-              <input
+            </Form.Item>
+            
+            <Form.Item 
+              name="dueDate" 
+              label="Hạn thanh toán" 
+              rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+            >
+              <Input 
                 type="date"
-                value={newFee.dueDate}
-                onChange={(e) => setNewFee({ ...newFee, dueDate: e.target.value })}
-                required
+                min={getTodayDateString()}
+                className="ant-input"
               />
-              <div className="modal-actions">
-                <button type="submit" className="btn-primary">
-                  Add Fee
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => setShowAddModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </Form.Item>
+            
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit">
+                  Cập nhật
+                </Button>
+                <Button onClick={() => setShowEditModal(false)}>
+                  Hủy
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
 
       {/* Upload Modal */}
       <Modal
@@ -678,6 +774,7 @@ const FeeManagement = () => {
         visible={showUploadModal}
         onCancel={() => setShowUploadModal(false)}
         footer={null}
+        destroyOnClose
       >
         <Form form={uploadForm} onFinish={handleUploadFees} layout="vertical">
           <Form.Item
@@ -685,26 +782,33 @@ const FeeManagement = () => {
             name="description"
             rules={[{ required: true, message: 'Please input description!' }]}
           >
-            <Input />
+            <Input placeholder="Enter description" />
           </Form.Item>
+          
           <Form.Item
             label="Due Date"
             name="dueDate"
             rules={[{ required: true, message: 'Please select due date!' }]}
           >
-            <DatePicker format="YYYY-MM-DD" />
+            <Input 
+              type="date"
+              min={getTodayDateString()}
+              className="ant-input"
+            />
           </Form.Item>
+          
           <Form.Item
             label="Fee Type"
             name="feeType"
             rules={[{ required: true, message: 'Please select fee type!' }]}
           >
-            <Select>
-              <Option value="ELSE">Else</Option>
+            <Select placeholder="Select fee type">
               <Option value="ELECTRICITY">Electricity</Option>
               <Option value="WATER">Water</Option>
+              <Option value="ELSE">Other</Option>
             </Select>
           </Form.Item>
+          
           <Form.Item
             label="Excel File"
             name="file"
@@ -718,69 +822,19 @@ const FeeManagement = () => {
               <Button icon={<UploadOutlined />}>Select File</Button>
             </Upload>
           </Form.Item>
+          
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Upload
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Upload
+              </Button>
+              <Button onClick={() => setShowUploadModal(false)}>
+                Cancel
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>
-
-      {/* Edit Fee Modal */}
-      {showEditModal && selectedFee && (
-        <div className="modal" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <span 
-              className="close" 
-              onClick={() => setShowEditModal(false)}
-              role="button" 
-              tabIndex={0}
-            >
-              &times;
-            </span>
-            <h3>Edit Fee</h3>
-            <form onSubmit={handleUpdateFee}>
-              <input
-                type="text"
-                value={selectedFee.roomNumber}
-                onChange={(e) => setSelectedFee({ ...selectedFee, roomNumber: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                value={selectedFee.description}
-                onChange={(e) => setSelectedFee({ ...selectedFee, description: e.target.value })}
-                required
-              />
-              <input
-                type="number"
-                value={selectedFee.amount}
-                onChange={(e) => setSelectedFee({ ...selectedFee, amount: e.target.value })}
-                step="0.01"
-                required
-              />
-              <input
-                type="date"
-                value={format(new Date(selectedFee.dueDate), 'yyyy-MM-dd')}
-                onChange={(e) => setSelectedFee({ ...selectedFee, dueDate: e.target.value })}
-                required
-              />
-              <div className="modal-actions">
-                <button type="submit" className="btn-primary">
-                  Update
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => setShowEditModal(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

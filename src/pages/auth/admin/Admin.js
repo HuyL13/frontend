@@ -599,6 +599,8 @@ const Admin = () => {
 
   // Delete resident from room
   const deleteResident = async (residentName, residentAge) => {
+    const ok = window.confirm('Are you sure you want to delete this resident?');
+  if (!ok) return;
     try {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");

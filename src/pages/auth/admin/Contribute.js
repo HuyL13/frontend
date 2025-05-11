@@ -1,13 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Select, Table, Button, Modal, Form, Input, DatePicker, Tag, message, Spin, Tabs, Typography, Row, Col, Card } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { SearchOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const { RangePicker } = DatePicker;
+
+// Configure the DatePicker to show all days
+DatePicker.defaultProps = {
+  ...DatePicker.defaultProps,
+  dropdownClassName: 'full-week-calendar'
+};
 const { TabPane } = Tabs;
 const { Title } = Typography;
 const { Option } = Select;
 const API_BASE_URL = 'http://localhost:22986/demo';
+
+// Custom date format
+const DATE_FORMAT = 'YYYY-MM-DD';
 
 const Contribute = () => {
   const [contributions, setContributions] = useState([]);
@@ -20,13 +29,18 @@ const Contribute = () => {
   const [contributionRecords, setContributionRecords] = useState([]);
   const [selectedContributionId, setSelectedContributionId] = useState(null);
   const [recordsLoading, setRecordsLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [approveLoading, setApproveLoading] = useState({});
+  const [deleteLoading, setDeleteLoading] = useState({});
   const [searchCriteria, setSearchCriteria] = useState({
     id: null,
     userId: null,
     contributionId: null,
     amount: null,
     contributedAt: null,
-    approved: null
+    approved: null,
+    startDate: null,
+    endDate: null
   });
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
@@ -39,12 +53,12 @@ const Contribute = () => {
     total: 0
   });
 
-  // Xử lý thay đổi phân trang cho tab tìm kiếm
+  // Handle pagination change for search tab
   const handleSearchTableChange = (pagination, filters, sorter) => {
     const params = {
       page: pagination.current - 1,
       size: pagination.pageSize,
-      sort: `${sorter.field || 'id'},${sorter.order === 'ascend' ? 'asc' : 'desc'}`
+      sort: sorter.field ? `${sorter.field},${sorter.order === 'ascend' ? 'asc' : 'desc'}` : 'id,desc'
     };
     
     setSearchPagination(pagination);
@@ -62,7 +76,7 @@ const Contribute = () => {
     }
     
     setPagination(pagination);
-    handleSearchRecords(params);
+    fetchContributionRecords(selectedContributionId, params);
   };
 
   useEffect(() => {
@@ -78,6 +92,11 @@ const Contribute = () => {
       const contribResponse = await fetch(`${API_BASE_URL}/admin/contribute/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      if (!contribResponse.ok) {
+        throw new Error(`Contributions Error: ${contribResponse.status}`);
+      }
+      
       const contribData = await contribResponse.json();
       setContributions(contribData);
 
@@ -85,21 +104,60 @@ const Contribute = () => {
       const pendingResponse = await fetch(`${API_BASE_URL}/admin/contribute/records/pending`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      if (!pendingResponse.ok) {
+        throw new Error(`Pending Records Error: ${pendingResponse.status}`);
+      }
+      
       const pendingData = await pendingResponse.json();
       setPendingRecords(pendingData);
     } catch (error) {
-      message.error('Error fetching data');
+      message.error(`Error fetching data: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
+  const validateDates = (startDate, endDate) => {
+    if (!startDate || !endDate) {
+      return false;
+    }
+    
+    const today = moment().startOf('day');
+    const start = moment(startDate).startOf('day');
+    const end = moment(endDate).startOf('day');
+    
+    if (start.isBefore(today)) {
+      message.error('Start date cannot be before today');
+      return false;
+    }
+    
+    if (end.isBefore(start)) {
+      message.error('End date cannot be before start date');
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleCreateUpdate = async (values) => {
+    // Validate dates
+    if (!validateDates(values.startDate, values.endDate)) {
+      return;
+    }
+    
     try {
+      setSubmitLoading(true);
       const token = localStorage.getItem("authToken");
       const url = selectedContribution 
         ? `${API_BASE_URL}/admin/contribute/${selectedContribution.id}`
         : `${API_BASE_URL}/admin/contribute`;
+
+      // Format dates properly
+      const payload = {
+        ...values
+        // We don't need to format dates here as they are already in YYYY-MM-DD format from input
+      };
 
       const response = await fetch(url, {
         method: selectedContribution ? 'PUT' : 'POST',
@@ -107,25 +165,30 @@ const Contribute = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...values,
-          startDate: values.dates[0].format('YYYY-MM-DD'),
-          endDate: values.dates[1].format('YYYY-MM-DD')
-        })
+        body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error('Operation failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Operation failed: ${response.status}`);
+      }
       
       message.success(`Contribution ${selectedContribution ? 'updated' : 'created'} successfully`);
       setModalVisible(false);
       fetchData();
+      form.resetFields();
     } catch (error) {
-      message.error(error.message);
+      message.error(`Error: ${error.message}`);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
+    const ok = window.confirm('Are you sure you want to delete this contribute?');
+  if (!ok) return;
     try {
+      setDeleteLoading(prev => ({ ...prev, [id]: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${API_BASE_URL}/admin/contribute/${id}`, {
         method: 'DELETE',
@@ -135,14 +198,24 @@ const Contribute = () => {
       if (response.status === 204) {
         message.success('Contribution deleted successfully');
         fetchData();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Delete failed: ${response.status}`);
       }
     } catch (error) {
-      message.error('Delete failed');
+      message.error(`Delete failed: ${error.message}`);
+    } finally {
+      setDeleteLoading(prev => ({ ...prev, [id]: false }));
     }
+  };
+
+  const confirmDelete = (id) => {
+    handleDelete(id);
   };
 
   const handleApproveRecord = async (recordId) => {
     try {
+      setApproveLoading(prev => ({ ...prev, [recordId]: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${API_BASE_URL}/admin/contribute/records/${recordId}/approve`, {
         method: 'PUT',
@@ -152,23 +225,55 @@ const Contribute = () => {
       if (response.ok) {
         message.success('Record approved successfully');
         fetchData();
+        // If we're viewing records for a contribution, refresh those too
+        if (selectedContributionId) {
+          fetchContributionRecords(selectedContributionId);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Approval failed: ${response.status}`);
       }
     } catch (error) {
-      message.error('Approval failed');
+      message.error(`Approval failed: ${error.message}`);
+    } finally {
+      setApproveLoading(prev => ({ ...prev, [recordId]: false }));
     }
   };
 
-  const fetchContributionRecords = async (contributionId) => {
+  const fetchContributionRecords = async (contributionId, params = {}) => {
+    if (!contributionId) return;
+    
     try {
       setRecordsLoading(true);
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`${API_BASE_URL}/admin/contribute/${contributionId}/records`, {
+      
+      const queryParams = new URLSearchParams({
+        page: params.page || pagination.current - 1,
+        size: params.size || pagination.pageSize,
+        sort: params.sort || 'id,desc'
+      });
+      
+      const response = await fetch(`${API_BASE_URL}/admin/contribute/${contributionId}/records?${queryParams}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching records: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setContributionRecords(data);
+      setContributionRecords(data.content || data);
+      
+      // Update pagination if we have page data
+      if (data.totalElements !== undefined) {
+        setPagination({
+          current: (params.page || 0) + 1,
+          pageSize: params.size || 10,
+          total: data.totalElements
+        });
+      }
     } catch (error) {
-      message.error('Error fetching contribution records');
+      message.error(`Error fetching contribution records: ${error.message}`);
     } finally {
       setRecordsLoading(false);
     }
@@ -184,12 +289,13 @@ const Contribute = () => {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+      ellipsis: true,
     },
     {
       title: 'Dates',
-      render: (_, record) => (
-        `${moment(record.startDate).format('DD/MM/YYYY')} - ${moment(record.endDate).format('DD/MM/YYYY')}`
-      )
+      render: (_, record) => 
+        `${moment(record.startDate).format(DATE_FORMAT)} - 
+        ${moment(record.endDate).format(DATE_FORMAT)}`
     },
     {
       title: 'Status',
@@ -204,17 +310,27 @@ const Contribute = () => {
       title: 'Actions',
       render: (_, record) => (
         <>
-          <Button type="link" onClick={() => {
-            setSelectedContribution(record);
-            form.setFieldsValue({
-              ...record,
-              dates: [moment(record.startDate), moment(record.endDate)]
-            });
-            setModalVisible(true);
-          }}>
+          <Button 
+            type="link" 
+            onClick={() => {
+              setSelectedContribution(record);
+              form.setFieldsValue({
+                ...record,
+                // Don't need to format dates for form, just pass the raw values
+                startDate: record.startDate,
+                endDate: record.endDate
+              });
+              setModalVisible(true);
+            }}
+          >
             Edit
           </Button>
-          <Button type="link" danger onClick={() => handleDelete(record.id)}>
+          <Button 
+            type="link" 
+            danger 
+            loading={deleteLoading[record.id]} 
+            onClick={() => confirmDelete(record.id)}
+          >
             Delete
           </Button>
           <Button 
@@ -249,12 +365,16 @@ const Contribute = () => {
     {
       title: 'Date',
       dataIndex: 'contributedAt',
-      render: date => moment(date).format('DD/MM/YYYY HH:mm')
+      render: date => moment(date).format(DATE_FORMAT)
     },
     {
       title: 'Action',
       render: (_, record) => (
-        <Button type="primary" onClick={() => handleApproveRecord(record.id)}>
+        <Button 
+          type="primary" 
+          loading={approveLoading[record.id]} 
+          onClick={() => handleApproveRecord(record.id)}
+        >
           Approve
         </Button>
       )
@@ -277,18 +397,18 @@ const Contribute = () => {
     {
       title: 'Contribution ID',
       key: 'contributionId',
-      render: (_, record) => record.contribution.id,
+      render: (_, record) => record.contribution?.id || 'N/A',
       sorter: true
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
-      render: amount => `$${amount.toFixed(2)}`
+      render: amount => `$${amount?.toFixed(2) || '0.00'}`
     },
     {
       title: 'Contributed At',
       dataIndex: 'contributedAt',
-      render: date => moment(date).format('DD/MM/YYYY HH:mm')
+      render: date => date ? moment(date).format(DATE_FORMAT) : 'N/A'
     },
     {
       title: 'Status',
@@ -297,6 +417,21 @@ const Contribute = () => {
         <Tag color={approved ? 'green' : 'orange'}>
           {approved ? 'Approved' : 'Pending'}
         </Tag>
+      )
+    },
+    {
+      title: 'Actions',
+      render: (_, record) => (
+        !record.approved && (
+          <Button 
+            type="primary" 
+            size="small"
+            loading={approveLoading[record.id]} 
+            onClick={() => handleApproveRecord(record.id)}
+          >
+            Approve
+          </Button>
+        )
       )
     }
   ];
@@ -311,6 +446,16 @@ const Contribute = () => {
         sort: params.sort || 'id,desc'
       });
 
+      const searchData = {
+        id: searchCriteria.id,
+        userId: searchCriteria.userId,
+        contributionId: searchCriteria.contributionId,
+        amount: searchCriteria.amount,
+        approved: searchCriteria.approved,
+        startDate: searchCriteria.startDate,
+        endDate: searchCriteria.endDate
+      };
+
       const response = await fetch(
         `${API_BASE_URL}/search/contributionRecords?${queryParams}`,
         {
@@ -319,19 +464,23 @@ const Contribute = () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify(searchCriteria)
+          body: JSON.stringify(searchData)
         }
       );
 
+      if (!response.ok) {
+        throw new Error(`Search error: ${response.status}`);
+      }
+
       const data = await response.json();
-      setSearchResults(data.content);
+      setSearchResults(data.content || []);
       setSearchPagination({
         current: (params.page || 0) + 1,
         pageSize: params.size || 10,
-        total: data.totalElements
+        total: data.totalElements || 0
       });
     } catch (error) {
-      message.error('Error searching records');
+      message.error(`Error searching records: ${error.message}`);
     } finally {
       setSearchLoading(false);
     }
@@ -360,9 +509,11 @@ const Contribute = () => {
       userId: null,
       contributionId: null,
       amount: null,
-      contributedAt: null,
+      startDate: null,
+      endDate: null,
       approved: null
     });
+    handleSearchRecords();
   };
 
   const SearchModal = () => (
@@ -431,13 +582,56 @@ const Contribute = () => {
           </Col>
           <Col span={12}>
             <Form.Item label="Contribution Date" name="dateRange">
-              <DatePicker.RangePicker showTime />
+              <RangePicker 
+                format={DATE_FORMAT} 
+                style={{ width: '100%' }}
+                size="small"
+                fullscreen={false}
+              />
             </Form.Item>
           </Col>
         </Row>
       </Form>
     </Modal>
   );
+
+  // Add custom CSS to ensure the DatePicker shows all 7 days
+  useEffect(() => {
+    // Add a custom CSS class to ensure the calendar shows all days
+    const style = document.createElement('style');
+    document.head.appendChild(style);
+    style.innerHTML = `
+      .full-week-calendar .ant-picker-content th,
+      .full-week-calendar .ant-picker-content td {
+        min-width: 24px !important;
+        padding: 0 !important;
+      }
+      .full-week-calendar .ant-picker-cell-inner {
+        min-width: 22px !important;
+        height: 22px !important;
+        line-height: 22px !important;
+        font-size: 12px !important;
+      }
+      .full-week-calendar .ant-picker-header-view {
+        font-size: 12px !important;
+      }
+      .full-week-calendar .ant-picker-content {
+        width: 100% !important;
+        table-layout: fixed !important;
+      }
+    `;
+    
+    return () => {
+      if (style && style.parentNode) {
+        style.parentNode.removeChild(style);
+      }
+    };
+  }, []);
+
+  // Function to get today's date in YYYY-MM-DD format
+  const getTodayDateString = () => {
+    return moment().format(DATE_FORMAT);
+  };
 
   return (
     <div className="p-4">
@@ -536,6 +730,13 @@ const Contribute = () => {
                   columns={contributionRecordsColumns}
                   dataSource={contributionRecords}
                   rowKey="id"
+                  pagination={{
+                    ...pagination,
+                    showSizeChanger: true,
+                    showTotal: total => `Total ${total} items`,
+                    pageSizeOptions: ['10', '20', '50']
+                  }}
+                  onChange={handleTableChange}
                   bordered
                 />
               </>
@@ -552,7 +753,10 @@ const Contribute = () => {
       <Modal
         title={`${selectedContribution ? 'Edit' : 'Create'} Contribution`}
         visible={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+        }}
         footer={null}
         destroyOnClose
       >
@@ -578,28 +782,85 @@ const Contribute = () => {
             <Input.TextArea rows={4} />
           </Form.Item>
 
-          <Form.Item
-            name="dates"
-            label="Date Range"
-            rules={[{ required: true, message: 'Please select date range!' }]}
-          >
-            <RangePicker format="DD/MM/YYYY" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[{ 
+                  required: true, 
+                  message: 'Please select start date!'
+                }]}
+              >
+                <Input 
+                  type="date"
+                  min={getTodayDateString()}
+                  className="ant-input"
+                  onChange={(e) => {
+                    // When start date changes, clear end date if it's before start date
+                    const newStartDate = e.target.value;
+                    const currentEndDate = form.getFieldValue('endDate');
+                    
+                    if (currentEndDate && currentEndDate < newStartDate) {
+                      form.setFieldsValue({ endDate: '' });
+                    }
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="endDate"
+                label="End Date"
+                dependencies={['startDate']}
+                rules={[{ 
+                  required: true, 
+                  message: 'Please select end date!',
+                  validator: (_, value) => {
+                    const startDate = form.getFieldValue('startDate');
+                    if (!startDate) {
+                      return Promise.reject('Please select start date first!');
+                    }
+                    if (!value) {
+                      return Promise.reject('Please select end date!');
+                    }
+                    if (value < startDate) {
+                      return Promise.reject('End date must be after start date!');
+                    }
+                    return Promise.resolve();
+                  }
+                }]}
+              >
+                <Input 
+                  type="date"
+                  className="ant-input"
+                  min={form.getFieldValue('startDate') || getTodayDateString()}
+                  disabled={!form.getFieldValue('startDate')}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item
             name="active"
             label="Status"
             valuePropName="checked"
           >
-            <Input type="checkbox" />
+            <Select defaultValue={true}>
+              <Option value={true}>Active</Option>
+              <Option value={false}>Inactive</Option>
+            </Select>
           </Form.Item>
 
           <Form.Item>
             <div className="flex justify-end space-x-2">
-              <Button onClick={() => setModalVisible(false)}>
+              <Button onClick={() => {
+                setModalVisible(false);
+                form.resetFields();
+              }}>
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={submitLoading}>
                 {selectedContribution ? 'Update' : 'Create'}
               </Button>
             </div>

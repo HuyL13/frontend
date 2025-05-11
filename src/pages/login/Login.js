@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/Login.css";
+import chungCu from "./Chung_cu4.jpeg";
 
 const Login = () => {
   const { login } = useAuth();
@@ -69,7 +70,7 @@ const Login = () => {
       }
 
       login(roles);
-      navigate("/dashboard");
+      navigate("/admin/user");
     } catch (err) {
       setError(err.message);
       localStorage.removeItem("authToken");
@@ -80,10 +81,21 @@ const Login = () => {
 
   return (
     <div className="row g-0 auth-wrapper">
-      <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
-        <div className="auth-background-holder"></div>
-        <div className="auth-background-mask"></div>
-      </div>
+      <div className="col-12 col-md-5 col-lg-6 h-100">
+  <div className="auth-background-holder"></div>
+  <div style={{ width: '100%', height: '100%' }}>
+    <img
+      src={chungCu}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover' // hoặc 'contain' nếu muốn toàn bộ ảnh hiển thị mà không bị cắt
+      }}
+      alt="Chung cư"
+    />
+  </div>
+</div>
+
 
       <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center">
         <div className="d-flex flex-column align-content-end">
@@ -218,6 +230,10 @@ const Login = () => {
         </div>
       </div>
     </div>
+    
+
+ 
+    
   );
 };
 

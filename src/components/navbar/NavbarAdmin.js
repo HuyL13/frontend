@@ -325,12 +325,6 @@ const NavbarAdmin = ({ username, handleLogout }) => {
               <nav id="main-menu-navigation" className="navigation-main">
                 <div className="nav-lavel" style={!sidebarOpen ? {display: 'none'} : {}}>Quản lý chính</div>
                 
-                <div className="nav-item active">
-                  <NavLink to="/dashboard" className="nav-link">
-                    <i className="ik ik-bar-chart-2" style={{marginRight: '10px'}}></i>
-                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Thống kê</span>
-                  </NavLink>
-                </div>
 
                 <div className="nav-item active">
                   <NavLink to="admin/notis" className="nav-link">

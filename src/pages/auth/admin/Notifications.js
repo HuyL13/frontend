@@ -15,6 +15,11 @@ const Notifications = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [createForm] = Form.useForm();
   const [sendSpecificForm] = Form.useForm();
+  const [creatingLoading, setCreatingLoading] = useState(false);
+  const [sendingSpecificLoading, setSendingSpecificLoading] = useState(false);
+  const [sendingToAllId, setSendingToAllId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
 
   useEffect(() => {
     fetchAnnouncements();
@@ -24,7 +29,7 @@ const Notifications = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`${API_BASE_URL}/admin/announcements`, {
+      const response = await fetch(`http://localhost:22986/demo/admin/announcements`, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",
@@ -33,6 +38,7 @@ const Notifications = () => {
       });
       
       if (!response.ok) {
+        console.log("ấdsd");
         throw new Error('Failed to fetch announcements');
       }
 
@@ -95,7 +101,9 @@ const Notifications = () => {
   };
 
   const handleCreateAnnouncement = async (values) => {
+    setCreatingLoading(true);
     try {
+      
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${API_BASE_URL}/admin/announcements/create`, {
         method: 'POST',
@@ -119,9 +127,15 @@ const Notifications = () => {
       console.error('Error creating announcement:', err);
       message.error(err.message || 'Failed to create announcement');
     }
+    finally{
+      setCreatingLoading(false);
+    }
   };
 
   const handleDelete = async (id) => {
+    const ok = window.confirm('Are you sure you want to delete this notification?');
+  if (!ok) return;
+    setDeletingId(id);
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${API_BASE_URL}/admin/announcements/delete/${id}`, {
@@ -139,9 +153,13 @@ const Notifications = () => {
     } catch (err) {
       message.error(err.message);
     }
+     finally {
+      setDeletingId(null);
+    }
   };
 
   const handleSendToAll = async (announcement) => {
+    setSendingToAllId(announcement.id);
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${API_BASE_URL}/admin/announcements/sendToAll`, {
@@ -162,9 +180,13 @@ const Notifications = () => {
     } catch (err) {
       message.error(err.message);
     }
+     finally {
+      setSendingToAllId(null);
+    }
   };
 
   const handleSendToSpecific = async (values) => {
+     setSendingSpecificLoading(true);
     try {
       if (selectedUserIds.length === 0) {
         message.error('Please select at least one user');
@@ -200,6 +222,9 @@ const Notifications = () => {
     } catch (err) {
       console.error('Error sending to specific users:', err);
       message.error(err.message || 'Failed to send specific announcement');
+    }
+    finally {
+      setSendingSpecificLoading(false);
     }
   };
 
@@ -294,6 +319,7 @@ const Notifications = () => {
                 <Button 
                   type="link" 
                   onClick={() => handleSendToAll(item)}
+                  loading={sendingToAllId === item.id}
                   className="text-blue-500"
                 >
                   Send to All
@@ -302,6 +328,7 @@ const Notifications = () => {
                   type="link" 
                   danger 
                   onClick={() => handleDelete(item.id)}
+                   loading={deletingId === item.id}
                   className="text-red-500"
                 >
                   Delete
@@ -329,6 +356,7 @@ const Notifications = () => {
         title="Create New Announcement"
         visible={isCreateModalVisible}
         onCancel={() => setIsCreateModalVisible(false)}
+        loading={creatingLoading}
         footer={null}
         destroyOnClose
       >
@@ -463,6 +491,7 @@ const Notifications = () => {
                 htmlType="submit"
                 className="bg-blue-500 hover:bg-blue-600"
                 disabled={selectedUserIds.length === 0}
+        loading={sendingSpecificLoading}
               >
                 Send to {selectedUserIds.length} users
               </Button>

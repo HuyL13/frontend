@@ -50,8 +50,7 @@ const NavbarSelector = () => {
     admin: <NavbarAdmin handleLogout={handleLogout} />,
     user: <NavbarResident handleLogout={handleLogout} />,
     user_admin: <NavbarAdmin handleLogout={handleLogout} />,
-    guest: <NavbarGuest handleLogout={handleLogout} />,
-    default: <NavbarDefault />
+    
   };
 
   return isAuthenticated ? navbarComponents[navbarType] : navbarComponents.default;

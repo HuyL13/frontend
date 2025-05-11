@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 
-import { Table, Button, Modal, Form, Input, Select, Tag, Spin, message, Tooltip, Card, Divider, Row, Col, Typography } from 'antd';
-import { ExclamationCircleOutlined, CarOutlined, ReloadOutlined, PlusOutlined, SwapOutlined, UserOutlined, NumberOutlined, IdcardOutlined } from '@ant-design/icons';
+import { 
+  Table, Button, Modal, Form, Input, Select, Tag, Spin, 
+  message as antMessage, Tooltip, Card, Divider, Row, Col, Typography 
+} from 'antd';
+import { 
+  CarOutlined, ReloadOutlined, PlusOutlined, 
+  SwapOutlined, NumberOutlined, IdcardOutlined 
+} from '@ant-design/icons';
 import carImage from './vehicle/car_top_view.jpg';
 import motorbikeImage from './vehicle/motor_top_view.png';
 import "../../../styles/Vehicle.css";
 
 const { Option } = Select;
-const { confirm } = Modal;
 const { Title, Text } = Typography;
-const API_BASE_URL = 'http://localhost:22986/demo';
 
 const Vehicle = () => {
   const [parkingLots, setParkingLots] = useState([]);
@@ -20,22 +24,26 @@ const Vehicle = () => {
   const [assignVisible, setAssignVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lotLoading, setLotLoading] = useState(false);
-  const [vehiclesLoading, setVehiclesLoading] = useState(false);
   const [visualView, setVisualView] = useState(true);
   const [registerAssignModal, setRegisterAssignModal] = useState(false);
   const [selectedEmptyLot, setSelectedEmptyLot] = useState(null);
   const [form] = Form.useForm();
   const [assignForm] = Form.useForm();
   const [registerAssignForm] = Form.useForm();
-
   
   const [selectedOccupiedLot, setSelectedOccupiedLot] = useState(null);
-const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  
   // Define standard parking lot layout dimensions
   const carRowCount = 4;
   const carColCount = 4;
   const motorbikeRowCount = 14;
   const motorbikeColCount = 5;
+
+  const [createLoading, setCreateLoading] = useState(false);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [registerAssignLoading, setRegisterAssignLoading] = useState(false);
+  const [unassignLoading, setUnassignLoading] = useState({});
 
   useEffect(() => {
     fetchParkingLots();
@@ -59,7 +67,7 @@ const [modalVisible, setModalVisible] = useState(false);
       setParkingLots(data);
       console.log("success");
     } catch (error) {
-      message.error('Failed to load parking lots: ' + error.message);
+      antMessage.error('Failed to load parking lots: ' + error.message);
     } finally {
       setLotLoading(false);
     }
@@ -83,7 +91,7 @@ const [modalVisible, setModalVisible] = useState(false);
       setLotVehicles(data);
       console.log("success");
     } catch (error) {
-      message.error('Failed to load vehicles: ' + error.message);
+      antMessage.error('Failed to load vehicles: ' + error.message);
       setLotVehicles([]);
     } finally {
       setLoading(false);
@@ -91,39 +99,74 @@ const [modalVisible, setModalVisible] = useState(false);
   };
 
   const handleUnassign = async (vehicleId, lotId) => {
-  try {
-    // Thông báo xác nhận bằng alert (ko có Cancel)
-    alert('Bạn sắp huỷ gán xe khỏi bãi. Tiếp tục?');
+    try {
+      setUnassignLoading(prev => ({ ...prev, [vehicleId]: true }));
 
-    const token = localStorage.getItem("authToken");
-    const response = await fetch(
-      `http://localhost:22986/demo/admin/api/parking-lots/unassign-vehicle/${vehicleId}`,
-      {
-        method: 'DELETE',
-        headers: {
-          "Authorization": `Bearer ${token}`,
+      // Thông báo xác nhận bằng alert (ko có Cancel)
+      alert('Bạn sắp huỷ gán xe khỏi bãi. Tiếp tục?');
+
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        `http://localhost:22986/demo/admin/api/parking-lots/unassign-vehicle/${vehicleId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
         }
-      }
-    );
+      );
 
-    if (response.status === 204 || response.ok) {
-      message.success('Vehicle unassigned successfully');
-    } else {
-      const errorText = await response.text();
-      throw new Error(errorText || 'Unassignment failed');
+      if (response.status === 204 || response.ok) {
+        antMessage.success('Vehicle unassigned successfully');
+      } else {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Unassignment failed');
+      }
+
+      // Cập nhật lại UI
+      await fetchLotVehicles(lotId);
+      fetchParkingLots();
+    } catch (error) {
+      antMessage.error(error.message);
+    } finally {
+      setUnassignLoading(prev => ({ ...prev, [vehicleId]: false }));
+    }
+  };
+
+  // Helper function to validate license plate format
+  const validateLicensePlate = (type, value) => {
+    if (!value) return { valid: false, message: 'Vui lòng nhập biển số' };
+    
+    const carPattern = /^\d{2}[A-Z]-\d{3}\.\d{2}$/; // Ví dụ: 37A-123.24
+    const motorbikePattern = /^\d{2}[A-Z]\d-\d{3}\.\d{2}$/; // Ví dụ: 37A2-123.42
+    
+    let isValid = false;
+    switch(type) {
+      case 'CAR':
+        isValid = carPattern.test(value.toUpperCase());
+        break;
+      case 'MOTORBIKE':
+        isValid = motorbikePattern.test(value.toUpperCase());
+        break;
+      default:
+        return { valid: false, message: 'Vui lòng chọn loại phương tiện trước' };
     }
 
-    // Cập nhật lại UI
-    await fetchLotVehicles(lotId);
-    fetchParkingLots();
-  } catch (error) {
-    message.error(error.message);
-  }
-};
-
+    return {
+      valid: isValid,
+      message: isValid ? '' : `Biển số không hợp lệ cho ${type === 'CAR' ? 'Ô tô' : 'Xe máy'}. Ví dụ: ${type === 'CAR' ? '37A-123.24' : '37A2-123.42'}`
+    };
+  };
 
   const handleCreateVehicle = async (values) => {
+    const validationResult = validateLicensePlate(values.type, values.licensePlate);
+    if (!validationResult.valid) {
+      antMessage.error(validationResult.message);
+      return;
+    }
+    
     try {
+      setCreateLoading(true);
       const token = localStorage.getItem("authToken");
       const response = await fetch(`http://localhost:22986/demo/api/vehicles/room/${values.roomId}`, {
         method: 'POST',
@@ -142,20 +185,22 @@ const [modalVisible, setModalVisible] = useState(false);
         throw new Error(errorData.error || 'Failed to create vehicle');
       }
 
-      const data = await response.json();
-      message.success('Vehicle created successfully');
+      await response.json();
+      antMessage.success('Vehicle created successfully');
       console.log("success");
       setCreateVisible(false);
       form.resetFields();
       fetchParkingLots();
     } catch (error) {
-      message.error(error.message);
+      antMessage.error(error.message);
+    } finally {
+      setCreateLoading(false);
     }
   };
 
-  
   const handleAssignVehicle = async (values) => {
     try {
+      setAssignLoading(true);
       const token = localStorage.getItem("authToken");
       const response = await fetch(
         `http://localhost:22986/demo/api/vehicles/${values.lotId}/assign-vehicle/${values.vehicleId}`, {
@@ -172,38 +217,45 @@ const [modalVisible, setModalVisible] = useState(false);
         throw new Error(errorData.error || 'Assignment failed');
       }
 
-      const data = await response.json();
-      message.success('Vehicle assigned successfully');
+      await response.json();
+      antMessage.success('Vehicle assigned successfully');
       console.log("success");
       setAssignVisible(false);
       assignForm.resetFields();
       fetchParkingLots();
       if (selectedLot) fetchLotVehicles(selectedLot.id);
     } catch (error) {
-      message.error(error.message);
+      antMessage.error(error.message);
+    } finally {
+      setAssignLoading(false);
     }
   };
 
   const handleRegisterAndAssign = async (values) => {
     const token = localStorage.getItem("authToken");
     if (!token) {
-      message.error("Authentication token not found. Please log in again.");
+      antMessage.error("Authentication token not found. Please log in again.");
       return;
     }
   
     if (!values?.roomId || !values?.licensePlate || !values?.type) {
-      message.error("Missing vehicle registration information.");
+      antMessage.error("Missing vehicle registration information.");
       return;
     }
   
     if (!selectedEmptyLot?.id) {
-      message.error("No parking lot selected for assignment.");
+      antMessage.error("No parking lot selected for assignment.");
       return;
     }
   
-    setLoading(true);
+    const validationResult = validateLicensePlate(values.type, values.licensePlate);
+    if (!validationResult.valid) {
+      antMessage.error(validationResult.message);
+      return;
+    }
   
     try {
+      setRegisterAssignLoading(true);
       // Step 1: Register vehicle
       console.log("🚗 Registering vehicle:", values);
   
@@ -218,7 +270,8 @@ const [modalVisible, setModalVisible] = useState(false);
           type: values.type,
         }),
       });
-  
+      
+      console.log(registerRes);
       if (!registerRes.ok) {
         const err = await registerRes.json().catch(() => ({}));
         console.log("wrong");
@@ -226,7 +279,7 @@ const [modalVisible, setModalVisible] = useState(false);
       }
   
       const vehicle = await registerRes.json();
-      console.log("hâha",vehicle);
+      console.log("hâha", vehicle);
       if (!vehicle?.id) throw new Error("Invalid vehicle data returned.");
   
       console.log("✅ Vehicle registered:", vehicle);
@@ -252,7 +305,7 @@ const [modalVisible, setModalVisible] = useState(false);
       const lot = await assignRes.json();
       console.log("✅ Vehicle assigned to lot:", lot);
   
-      message.success("Vehicle registered and assigned to lot successfully");
+      antMessage.success("Vehicle registered and assigned to lot successfully");
       setRegisterAssignModal(false);
       registerAssignForm.resetFields();
   
@@ -265,12 +318,11 @@ const [modalVisible, setModalVisible] = useState(false);
   
     } catch (error) {
       console.error("❌ Register and assign error:", error);
-      message.error(error.message || "An unknown error occurred");
+      antMessage.error(error.message || "An unknown error occurred");
     } finally {
-      setLoading(false);
+      setRegisterAssignLoading(false);
     }
   };
-  
 
   // Helper function to determine if a lot has a specific vehicle type
   const getLotVehicleDetails = (lot) => {
@@ -336,52 +388,64 @@ const [modalVisible, setModalVisible] = useState(false);
       },
       width: '15%',
     },
-     {
+    {
     title: 'Actions',
     key: 'actions',
-    render: (_, record) => (
-      <Button 
-        danger 
-        onClick={() => handleUnassign(record.id)}
-      >
-        Unassign
-      </Button>
-    ),
-    width: '35%',
+    render: (_, record) => {
+      // Chỉ hiển thị nút Unassign nếu có xe
+      if (!record.occupied || !record.vehicleIds || record.vehicleIds.length === 0) {
+        return null;
+      }
+      return (
+        <Button 
+          danger 
+          onClick={() => handleUnassign(record.id, selectedOccupiedLot?.id)}
+          loading={unassignLoading[record.id]}
+        >
+          Unassign
+        </Button>
+      );
+    },
+    width: '25%',
   }
   ];
 
   const vehicleColumns = [
     {
-    title: 'ID',
-    dataIndex: 'id',
-    key: 'id',
-    width: '15%',
-  },
-  {
-    title: 'License Plate',
-    dataIndex: 'licensePlate',
-    key: 'licensePlate',
-    width: '20%',
-  },
-  {
-    title: 'Type',
-    dataIndex: 'type',
-    key: 'type',
-    render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>,
-    width: '15%',
-  },
-  {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: '15%',
+    },
+    {
+      title: 'License Plate',
+      dataIndex: 'licensePlate',
+      key: 'licensePlate',
+      width: '20%',
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>,
+      width: '15%',
+    },
+    {
     title: 'Actions',
     key: 'actions',
-    render: (_, record) => (
-      <Button 
-        danger 
-        onClick={() => handleUnassign(record.id, selectedOccupiedLot?.id)}
-      >
-        Unassign
-      </Button>
-    ),
+    render: (_, record) => {
+      // Chỉ hiển thị nút Unassign nếu có xe
+      if (!record.id) return null;
+      return (
+        <Button 
+          danger 
+          onClick={() => handleUnassign(record.id, selectedOccupiedLot?.id)}
+          loading={unassignLoading[record.id]}
+        >
+          Unassign
+        </Button>
+      );
+    },
     width: '25%',
   }
   ];
@@ -406,38 +470,36 @@ const [modalVisible, setModalVisible] = useState(false);
         
         cells.push(
           <Tooltip 
-  title={
-    <>
-      <div><strong>Lot {lot.lotNumber}</strong> (ID: {lot.id})</div>
-      <div>Status: {lot.occupied ? 'Occupied' : 'Available'}</div>
-      {lot.occupied && lot.vehicleIds?.length > 0 && (
-        <div>Vehicle IDs: {lot.vehicleIds.join(', ')}</div>
-      )}
-      {lot.occupied && vehicleInfo?.licensePlate?.length > 0 && (
-        <div>License Plate(s): {vehicleInfo.licensePlate.join(', ')}</div>
-      )}
-      {!lot.occupied && <div>Click to register and assign a vehicle</div>}
-    </>
-  }
-  key={lot.id}
->
-
+            title={
+              <>
+                <div><strong>Lot {lot.lotNumber}</strong> (ID: {lot.id})</div>
+                <div>Status: {lot.occupied ? 'Occupied' : 'Available'}</div>
+                {lot.occupied && lot.vehicleIds?.length > 0 && (
+                  <div>Vehicle IDs: {lot.vehicleIds.join(', ')}</div>
+                )}
+                {lot.occupied && vehicleInfo?.licensePlate?.length > 0 && (
+                  <div>License Plate(s): {vehicleInfo.licensePlate.join(', ')}</div>
+                )}
+                {!lot.occupied && <div>Click to register and assign a vehicle</div>}
+              </>
+            }
+            key={lot.id}
+          >
             <div 
               className={`parking-cell ${lot.occupied ? 'occupied' : 'available'}`}
-              // Trong hàm renderParkingLot, thay đổi phần onClick của parking-cell
-onClick={() => {
-  if (lot.occupied) {
-    setSelectedOccupiedLot(lot);
-    fetchLotVehicles(lot.id);
-    setModalVisible(true);
-  } else {
-    setSelectedEmptyLot(lot);
-    registerAssignForm.setFieldsValue({
-      type: lot.type
-    });
-    setRegisterAssignModal(true);
-  }
-}}
+              onClick={() => {
+                if (lot.occupied) {
+                  setSelectedOccupiedLot(lot);
+                  fetchLotVehicles(lot.id);
+                  setModalVisible(true);
+                } else {
+                  setSelectedEmptyLot(lot);
+                  registerAssignForm.setFieldsValue({
+                    type: lot.type
+                  });
+                  setRegisterAssignModal(true);
+                }
+              }}
             >
               <div className="lot-number">{lot.lotNumber}</div>
               <div className="lot-id">ID: {lot.id}</div>
@@ -599,6 +661,7 @@ onClick={() => {
             type="primary" 
             icon={<PlusOutlined />}
             onClick={() => setCreateVisible(true)}
+            loading={createLoading}
           >
             Register Vehicle
           </Button>
@@ -606,6 +669,7 @@ onClick={() => {
             type="primary"
             icon={<SwapOutlined />}
             onClick={() => setAssignVisible(true)}
+            loading={assignLoading}
           >
             Assign Vehicle
           </Button>
@@ -716,9 +780,23 @@ onClick={() => {
           <Form.Item
             name="licensePlate"
             label="License Plate"
-            rules={[{ required: true, message: 'Please input license plate!' }]}
+            dependencies={['type']}
+            rules={[
+              { required: true, message: 'Please input license plate!' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const type = getFieldValue('type');
+                  const { valid, message } = validateLicensePlate(type, value);
+                  return valid ? Promise.resolve() : Promise.reject(new Error(message));
+                }
+              })
+            ]}
+            normalize={value => value ? value.toUpperCase() : ''}
           >
-            <Input placeholder="e.g. 59A-123.45" prefix={<IdcardOutlined />} />
+            <Input 
+              placeholder="VD: 37A-123.24 (Ô tô) hoặc 37A2-123.42 (Xe máy)" 
+              prefix={<IdcardOutlined />}
+            />
           </Form.Item>
           <Form.Item
             name="type"
@@ -731,7 +809,7 @@ onClick={() => {
             </Select>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={createLoading}>
               Register Vehicle
             </Button>
           </Form.Item>
@@ -762,15 +840,12 @@ onClick={() => {
             <Input type="number" placeholder="Enter parking lot ID" prefix={<NumberOutlined />} />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={assignLoading}>
               Assign Vehicle
             </Button>
           </Form.Item>
         </Form>
       </Modal>
-      
-
-    
 
       {/* Register and Assign Vehicle Modal */}
       <Modal
@@ -789,12 +864,27 @@ onClick={() => {
             <Input type="number" placeholder="Enter room number" prefix={<NumberOutlined />} />
           </Form.Item>
           <Form.Item
-            name="licensePlate"
-            label="License Plate"
-            rules={[{ required: true, message: 'Please input license plate!' }]}
-          >
-            <Input placeholder="e.g. 59A-123.45" prefix={<IdcardOutlined />} />
-          </Form.Item>
+  name="licensePlate"
+  label="License Plate"
+  rules={[
+    { required: true, message: 'Please input license plate!' },
+    ({ getFieldValue }) => ({
+      validator(_, value) {
+        const type = selectedEmptyLot?.type; // Lấy type từ parking lot đã chọn
+        const { valid, message } = validateLicensePlate(type, value);
+        return valid ? Promise.resolve() : Promise.reject(new Error(message));
+      }
+    })
+  ]}
+  normalize={value => value ? value.toUpperCase() : ''}
+>
+  <Input
+    placeholder={selectedEmptyLot?.type === 'CAR' 
+      ? "VD: 37A-123.24" 
+      : "VD: 37A2-123.42"}
+    prefix={<IdcardOutlined />}
+  />
+</Form.Item>
           <Form.Item
             name="type"
             label="Vehicle Type"
@@ -811,7 +901,7 @@ onClick={() => {
             </Text>
           </div>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={registerAssignLoading}>
               Register & Assign Vehicle
             </Button>
           </Form.Item>
@@ -1021,6 +1111,18 @@ onClick={() => {
           text-align: center;
           padding: 20px;
         }
+          .ant-form-item-explain-error {
+    white-space: pre-wrap;
+    font-size: 12px;
+    color: #ff4d4f;
+    margin-top: 4px;
+  }
+  
+  .license-example {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
       `}</style>
     </div>
   );

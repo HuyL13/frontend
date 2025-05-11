@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { List, Button, Modal, Form, Input, Select, message, Spin, Table, Tag } from 'antd';
 
-const { Option } = Select;
+const { Option,OptGroup } = Select;
 const { TextArea } = Input;
 const API_BASE_URL = 'http://localhost:22986/demo';
 
@@ -96,6 +96,8 @@ const Complain = () => {
   
   // Handle delete complaint
   const handleDelete = async (id) => {
+    const ok = window.confirm('Are you sure you want to delete this complain?');
+  if (!ok) return;
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(`${API_BASE_URL}/admin/complains/${id}`, {
@@ -226,43 +228,48 @@ const Complain = () => {
 
       {/* Filters */}
       <div className="mb-4 flex space-x-4">
-        <Select
-          value={filters.status}
-          onChange={(value) => setFilters({ ...filters, status: value })}
-          placeholder="Filter by Status"
-          className="w-40"
-          allowClear
-        >
-          <Option value="WAITING">Waiting</Option>
-          <Option value="IN_PROGRESS">In Progress</Option>
-          <Option value="RESOLVED">Resolved</Option>
-        </Select>
+  <Select
+    value={filters.status}
+    onChange={(value) => setFilters({ ...filters, status: value })}
+    placeholder="Filter by Status"
+      className="w-40 green"  // thêm class này
+    allowClear
+  >
+    <OptGroup label="Status">
+      <Option value="WAITING">Waiting</Option>
+      <Option value="IN_PROGRESS">In Progress</Option>
+      <Option value="RESOLVED">Resolved</Option>
+    </OptGroup>
+  </Select>
 
-        <Select
-          value={filters.priority}
-          onChange={(value) => setFilters({ ...filters, priority: value })}
-          placeholder="Filter by Priority"
-          className="w-40"
-          allowClear
-        >
-          <Option value="HIGH">High</Option>
-          <Option value="MEDIUM">Medium</Option>
-          <Option value="LOW">Low</Option>
-        </Select>
+  <Select
+    value={filters.priority}
+    onChange={(value) => setFilters({ ...filters, priority: value })}
+    placeholder="Filter by Priority"
+    className="w-40"
+    allowClear
+  >
+    <OptGroup label="Priority">
+      <Option value="HIGH">High</Option>
+      <Option value="MEDIUM">Medium</Option>
+      <Option value="LOW">Low</Option>
+    </OptGroup>
+  </Select>
 
-        <Select
-          value={filters.type}
-          onChange={(value) => setFilters({ ...filters, type: value })}
-          placeholder="Filter by Type"
-          className="w-40"
-          allowClear
-        >
-          <Option value="FACILITY">Facility</Option>
-          <Option value="FEE">Fee</Option>
-          <Option value="SECURITY">Security</Option>
-        </Select>
-      </div>
-
+  <Select
+    value={filters.type}
+    onChange={(value) => setFilters({ ...filters, type: value })}
+    placeholder="Filter by Type"
+    className="w-40"
+    allowClear
+  >
+    <OptGroup label="Type">
+      <Option value="FACILITY">Facility</Option>
+      <Option value="FEE">Fee</Option>
+      <Option value="SECURITY">Security</Option>
+    </OptGroup>
+  </Select>
+</div>
       {/* Complaints Table */}
       <Spin spinning={loading}>
         <Table

@@ -379,6 +379,8 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
 
   // Delete user
   const deleteUser = async (userId) => {
+    const ok = window.confirm('Are you sure you want to delete this useruser?');
+  if (!ok) return;
     try {
       console.log("xóa");
       const token = localStorage.getItem("authToken");
@@ -960,7 +962,14 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
           <Form.Item
             name="password"
             label="Mật khẩu"
-            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+            rules={[
+              { required: true, message: 'Vui lòng nhập mật khẩu!' },
+              {type: 'password', message: 'Mật khẩu dài trên 8 kí tự,1 chữ số,1 chữ viết hoa và 1 kí tự đặc biệt' },
+              { 
+      pattern: /^(?=.*\d)(?=.*[A-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/,
+      message: 'Mật khẩu phải có ít nhất 8 ký tự, 1 chữ số, 1 chữ hoa và 1 ký tự đặc biệt!' 
+    }
+            ]}
           >
             <Input.Password />
           </Form.Item>
@@ -996,7 +1005,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
           </Row>
           <Form.Item
             name="dob"
-            label="Ngày sinh"
+            label="Ngày sinh(Yêu cầu trên 18 tuổi)"
             rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
           >
             <Input type="date" />

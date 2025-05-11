@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
-
+import chungCu from "./Chung_cu4.jpeg";
 const Reset = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -65,9 +65,19 @@ const Reset = () => {
 
   return (
     <div className="row g-0 auth-wrapper">
-      <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
+      <div className="col-12 col-md-5 col-lg-6 h-100">
         <div className="auth-background-holder"></div>
-        <div className="auth-background-mask"></div>
+        <div style={{ width: '100%', height: '100%' }}>
+          <img
+            src={chungCu}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover' // hoặc 'contain' nếu muốn toàn bộ ảnh hiển thị mà không bị cắt
+            }}
+            alt="Chung cư"
+          />
+        </div>
       </div>
 
       <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center">
