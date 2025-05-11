@@ -1,0 +1,37 @@
+.contribution-container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  margin-right: 320px;
+}
+
+.contribution-list, .record-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.contribution-page {
+  position: relative;
+}
+
+.contribution-card, .record-card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: 0.3s;
+}
+
+.contribution-card:hover, .record-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.qr-fixed-box {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 280px;
+  z-index: 1000;
+}

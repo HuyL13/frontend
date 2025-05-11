@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useLayout } from '../../context/LayoutContext';
+import userImg from './ronaldoo.jpg';
 const NavbarAdmin = ({ username, handleLogout }) => {
   const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -8,6 +9,56 @@ const NavbarAdmin = ({ username, handleLogout }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false); // Added state for search visibility
 
+
+
+
+ 
+  // ... các state khác giữ nguyên
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showNotiDropdown, setShowNotiDropdown] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+
+  // Custom dropdown styles
+  const dropdownStyles = {
+    userDropdown: {
+      position: 'absolute',
+      right: 0,
+      top: '100%',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 15px rgba(0,0,0,0.1)',
+      borderRadius: '4px',
+      minWidth: '200px',
+      zIndex: 1001,
+      opacity: showUserDropdown ? 1 : 0,
+      visibility: showUserDropdown ? 'visible' : 'hidden',
+      transition: 'all 0.3s ease',
+    },
+    dropdownItem: {
+      padding: '12px 20px',
+      color: '#333',
+      textDecoration: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      '&:hover': {
+        backgroundColor: '#f8f9fa',
+      }
+    },
+    notificationDropdown: {
+      position: 'absolute',
+      right: 0,
+      top: '100%',
+      width: '350px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 15px rgba(0,0,0,0.1)',
+      borderRadius: '6px',
+      zIndex: 1001,
+      opacity: showNotiDropdown ? 1 : 0,
+      visibility: showNotiDropdown ? 'visible' : 'hidden',
+      transition: 'all 0.3s ease',
+    },
+    // ... thêm các style khác khi cần
+  };
   // Thêm CSS styles để quản lý layout
   const styles = {
     wrapper: {
@@ -76,6 +127,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
       padding: searchOpen ? '8px 12px' : '0',
       overflow: 'hidden',
     },
+    
   };
   
 
@@ -105,180 +157,99 @@ const NavbarAdmin = ({ username, handleLogout }) => {
       <header className="header-top" style={styles.headerTop}>
         <div className="container-fluid">
           <div className="d-flex justify-content-between align-items-center">
-            {/* Left Section - Search & Toggle */}
-            <div className="top-menu d-flex align-items-center">
-              {/* Mobile Toggle Button */}
-              <button 
-                type="button" 
-                className="btn-icon mobile-nav-toggle d-lg-none" 
-                onClick={toggleSidebar}
-                aria-label="Toggle navigation"
+            
+            {/* Notification Dropdown Custom */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowNotiDropdown(!showNotiDropdown)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  position: 'relative',
+                  padding: '8px',
+                  cursor: 'pointer',
+                }}
               >
-                <span className="icon-bar"></span>
-                <span className="icon-bar"></span>
-                <span className="icon-bar"></span>
+                <i ></i>
+                <span style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  background: '#dc3545',
+                  color: 'white',
+                  borderRadius: '50%',
+                  padding: '2px 6px',
+                  fontSize: '0.75rem',
+                }}></span>
               </button>
+              
+              
+            </div>
 
-              {/* Search Box - Updated with toggle functionality */}
-              <div className="d-flex" style={styles.searchContainer}>
-                <button 
-                  type="button" 
-                  className="search-toggle" 
-                  style={styles.searchButton}
-                  onClick={toggleSearch}
-                  aria-label="Toggle search"
-                >
-                  <i className="ik ik-search"></i>
-                </button>
-                <div className="header-search d-flex">
-                  <div className="input-group">
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Search..."
-                      aria-label="Search"
-                      style={styles.searchInput}
-                    />
-                    {searchOpen && (
-                      <span className="input-group-addon search-btn">
-                        <i className="ik ik-arrow-right"></i>
-                      </span>
-                    )}
-                  </div>
+            {/* User Dropdown Custom */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  position: 'relative',
+                }}
+              >
+                <img
+                  src={userImg}
+                  alt="User profile"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    
+                    border: '2px solid #1a237e',
+                  }}
+                />
+              </button>
+              
+              {showUserDropdown && (
+                <div style={dropdownStyles.userDropdown}>
+                  <NavLink 
+                    to="/account" 
+                    style={dropdownStyles.dropdownItem}
+                    activeStyle={{ backgroundColor: '#f8f9fa' }}
+                  >
+                    <i className="ik ik-user" style={{ width: '20px' }}></i>
+                    <span>Profile</span>
+                  </NavLink>
+                  <NavLink 
+                    to="/settings" 
+                    style={dropdownStyles.dropdownItem}
+                    activeStyle={{ backgroundColor: '#f8f9fa' }}
+                  >
+                    <i className="ik ik-settings" style={{ width: '20px' }}></i>
+                    <span>Settings</span>
+                  </NavLink>
+                  <div style={{ 
+                    height: '1px', 
+                    backgroundColor: '#eee', 
+                    margin: '8px 0' 
+                  }}></div>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      ...dropdownStyles.dropdownItem,
+                      width: '100%',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <i className="ik ik-power" style={{ width: '20px' }}></i>
+                    <span>Logout</span>
+                  </button>
                 </div>
-              </div>
-
-              {/* Fullscreen Toggle */}
-              <button 
-                type="button" 
-                id="navbar-fullscreen" 
-                className="nav-link ml-2" 
-                aria-label="Toggle fullscreen"
-              >
-                <i className="ik ik-maximize"></i>
-              </button>
+              )}
             </div>
-
-      {/* Right Section - Icons */}
-      <div className="top-menu d-flex align-items-center">
-        {/* Notification Dropdown */}
-        <div className="dropdown mx-2">
-          <a
-            className="nav-link dropdown-toggle"
-            href="#!"
-            role="button"
-            id="notiDropdown"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            <i className="ik ik-bell"></i>
-            <span className="badge bg-danger notification-badge">3</span>
-          </a>
-          <div className="dropdown-menu dropdown-menu-right notification-dropdown" aria-labelledby="notiDropdown">
-            <div className="dropdown-header">
-              <h4 className="mb-0">Notifications</h4>
-            </div>
-            <div className="notifications-wrap">
-              {/* Notification Items */}
-              <a href="#!" className="media">
-                <span className="d-flex text-success">
-                  <i className="ik ik-check"></i>
-                </span>
-                <span className="media-body">
-                  <span className="heading-font-family">Invitation accepted</span>
-                  <span className="media-content">Your have been invited to meeting</span>
-                </span>
-              </a>
-              {/* Add more notifications */}
-            </div>
-            <div className="dropdown-footer">
-              <a href="#!" className="text-primary">View all notifications</a>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages Dropdown */}
-        <button 
-          type="button" 
-          className="nav-link mx-2 position-relative" 
-          aria-label="Messages"
-        >
-          <i className="ik ik-message-square"></i>
-          <span className="badge bg-success message-badge">3</span>
-        </button>
-
-        {/* Quick Actions Dropdown */}
-        <div className="dropdown mx-2">
-          <a
-            className="nav-link dropdown-toggle"
-            href="#!"
-            role="button"
-            id="quickActions"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            <i className="ik ik-plus"></i>
-          </a>
-          <div className="dropdown-menu dropdown-menu-right p-2">
-            <div className="d-flex flex-wrap" style={{minWidth: '200px'}}>
-              <a href="#!" className="dropdown-item">
-                <i className="ik ik-bar-chart-2"></i>
-                <span>Analytics</span>
-              </a>
-              {/* Add more quick actions */}
-            </div>
-          </div>
-        </div>
-
-        {/* Apps Modal Trigger */}
-        <button 
-          type="button" 
-          className="nav-link mx-2" 
-          aria-label="Apps"
-          data-toggle="modal" 
-          data-target="#appsModal"
-        >
-          <i className="ik ik-grid"></i>
-        </button>
-
-        {/* User Dropdown */}
-        <div className="dropdown mx-2">
-          <a
-            className="dropdown-toggle user-toggle"
-            href="#!"
-            role="button"
-            id="userDropdown"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            <img 
-              className="avatar" 
-              src="../img/user.jpg" 
-              alt="User profile" 
-              width="35" 
-              height="35"
-            />
-          </a>
-          <div className="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-            <NavLink to="/account" className="dropdown-item">
-              <i className="ik ik-user"></i>
-              <span>Profile</span>
-            </NavLink>
-            <NavLink to="/settings" className="dropdown-item">
-              <i className="ik ik-settings"></i>
-              <span>Settings</span>
-            </NavLink>
-            <div className="dropdown-divider"></div>
-            <button className="dropdown-item" onClick={handleLogout}>
-              <i className="ik ik-power"></i>
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
+            
           </div>
         </div>
       </header>
@@ -326,12 +297,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                 <div className="nav-lavel" style={!sidebarOpen ? {display: 'none'} : {}}>Quản lý chính</div>
                 
 
-                <div className="nav-item active">
-                  <NavLink to="admin/notis" className="nav-link">
-                    <i className="ik ik-bell" ></i>
-                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Thông báo</span>
-                  </NavLink>
-                </div>
+                
 
                 <div className="nav-item active">
                   <NavLink to="admin/contribute" className="nav-link">

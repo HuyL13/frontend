@@ -1,30 +1,43 @@
 import React, { useEffect, useState } from 'react';
+import { Modal, Form, Input, Button, message, Select } from 'antd';
+import moment from 'moment';
+
+const { Option } = Select;
 
 const Account = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+  const [verifiedPassword, setVerifiedPassword] = useState('');
+  const [form] = Form.useForm();
+  const [passwordForm] = Form.useForm();
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         const token = localStorage.getItem('authToken');
+        if (!token) throw new Error('Không tìm thấy token xác thực');
         const response = await fetch('https://backend-13-6qob.onrender.com/demo/users/my-info', {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         });
-        console.log("1");
-        
-        console.log("1");
+
         const data = await response.json();
-        console.log(data);
         if (data.code !== 0) {
-          throw new Error('Lỗi trong response API');
+          throw new Error(data.message || 'Lỗi trong response API');
         }
 
+        const dob = data.result.dob ? moment(data.result.dob).format('YYYY-MM-DD') : '';
         setUserInfo(data.result);
+        form.setFieldsValue({
+          ...data.result,
+          dob,
+          residencyStatus: data.result.residencyStatus || 'THUONG_TRU',
+        });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -33,121 +46,283 @@ const Account = () => {
     };
 
     fetchUserInfo();
-  }, []);
+  }, [form]);
 
-  const getValueOrNull = (value) => (value ? value : "null");
+  const getValueOrDash = (value) => (value ? value : '-');
+
+  const handleVerifyPassword = async (values) => {
+    try {
+      if (!userInfo?.username) {
+        message.error('Không thể xác thực: Thiếu thông tin tên đăng nhập');
+        return;
+      }
+
+      const response = await fetch('https://backend-13-6qob.onrender.com/demo/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userInfo.username,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || data.code !== 0) {
+        throw new Error(data.message || 'Mật khẩu không đúng');
+      }
+
+      setVerifiedPassword(values.password);
+      setIsPasswordModalVisible(false);
+      setIsEditModalVisible(true);
+      form.setFieldsValue({ password: values.password });
+    } catch (err) {
+      console.error('Password verification error:', err);
+      message.error(err.message || 'Lỗi khi xác thực mật khẩu');
+    }
+  };
+
+  const handleUpdateUser = async (values) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const userId = userInfo?.id;
+      if (!token || !userId) {
+        message.error('Không thể cập nhật: Thiếu thông tin xác thực hoặc ID người dùng');
+        return;
+      }
+
+      const updatedValues = {
+        firstName: values.firstName || null,
+        lastName: values.lastName || null,
+        email: values.email || null,
+        dob: values.dob ? moment(values.dob).format('YYYY-MM-DD') : null,
+        residencyStatus: values.residencyStatus || null,
+        password: values.password || null,
+      };
+
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedValues),
+      });
+
+      const data = await response.json();
+      if (!response.ok || data.code !== 0) {
+        throw new Error(data.message || `Cập nhật thất bại (Mã lỗi: ${response.status})`);
+      }
+
+      setUserInfo((prev) => ({ ...prev, ...updatedValues }));
+      setIsEditModalVisible(false);
+      setVerifiedPassword('');
+      message.success('Cập nhật thông tin thành công');
+    } catch (err) {
+      console.error('Update error:', err);
+      message.error(err.message || 'Lỗi khi cập nhật thông tin');
+    }
+  };
+
+  const validatePassword = (_, value) => {
+    if (!value) {
+      return Promise.reject(new Error('Vui lòng nhập mật khẩu!'));
+    }
+    if (value.length < 9) {
+      return Promise.reject(new Error('Mật khẩu phải có ít nhất 9 ký tự!'));
+    }
+    if (!/[A-Z]/.test(value)) {
+      return Promise.reject(new Error('Mật khẩu phải có ít nhất một chữ hoa!'));
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+      return Promise.reject(new Error('Mật khẩu phải có ít nhất một ký tự đặc biệt!'));
+    }
+    return Promise.resolve();
+  };
 
   if (loading) {
-    return <div className="loading-spinner">Đang tải...</div>;
+    return <div className="text-center py-5 text-primary">Đang tải...</div>;
   }
 
   if (error) {
-    return <div className="error-message">Lỗi: {error}</div>;
+    return <div className="alert alert-danger text-center my-5">Lỗi: {error}</div>;
   }
 
   if (!userInfo) {
-    return <div>Không tìm thấy thông tin người dùng</div>;
+    return <div className="alert alert-warning text-center my-5">Không tìm thấy thông tin người dùng</div>;
   }
 
   return (
-    <div className="account-container">
-      <h1>Thông tin tài khoản</h1>
-      
-      <div className="user-info-section">
-        <h2>Thông tin cá nhân</h2>
-        <div className="info-row">
-          <span className="info-label">Họ và tên:</span>
-          <span className="info-value">{getValueOrNull(userInfo.lastName)} {getValueOrNull(userInfo.firstName)}</span>
+    <div className="container mt-5">
+      <div className="card shadow-sm">
+        <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <h4 className="mb-0">Thông tin tài khoản</h4>
+          <Button type="primary" onClick={() => setIsPasswordModalVisible(true)}>
+            Sửa thông tin
+          </Button>
         </div>
-        <div className="info-row">
-          <span className="info-label">Email:</span>
-          <span className="info-value">{getValueOrNull(userInfo.email)}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Ngày sinh:</span>
-          <span className="info-value">
-            {userInfo.dob ? new Date(userInfo.dob).toLocaleDateString('vi-VN') : "null"}
-          </span>
+        <div className="card-body">
+          <div className="row mb-3">
+            <div className="col-md-4 font-weight-bold text-muted">Họ và tên</div>
+            <div className="col-md-8">
+              {getValueOrDash(userInfo.lastName)} {getValueOrDash(userInfo.firstName)}
+            </div>
+          </div>
+          <div className="row mb-3">
+            <div className="col-md-4 font-weight-bold text-muted">Email</div>
+            <div className="col-md-8">{getValueOrDash(userInfo.email)}</div>
+          </div>
+          <div className="row mb-3">
+            <div className="col-md-4 font-weight-bold text-muted">Ngày sinh</div>
+            <div className="col-md-8">
+              {userInfo.dob ? new Date(userInfo.dob).toLocaleDateString('vi-VN') : '-'}
+            </div>
+          </div>
+          <div className="row mb-3">
+            <div className="col-md-4 font-weight-bold text-muted">Tên đăng nhập</div>
+            <div className="col-md-8">{getValueOrDash(userInfo.username)}</div>
+          </div>
+          <div className="row mb-3">
+            <div className="col-md-4 font-weight-bold text-muted">Trạng thái cư trú</div>
+            <div className="col-md-8">{getValueOrDash(userInfo.residencyStatus)}</div>
+          </div>
+          <div className="row">
+            <div className="col-md-4 font-weight-bold text-muted">Vai trò</div>
+            <div className="col-md-8">
+              {userInfo.roles?.length
+                ? userInfo.roles.map((role) => role.name).join(', ')
+                : '-'}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="account-info-section">
-        <h2>Thông tin tài khoản</h2>
-        <div className="info-row">
-          <span className="info-label">Tên đăng nhập:</span>
-          <span className="info-value">{getValueOrNull(userInfo.username)}</span>
-        </div>
-        <div className="info-row">
-          <span className="info-label">Vai trò:</span>
-          <span className="info-value">
-            {userInfo.roles && userInfo.roles.length > 0
-              ? userInfo.roles.map(role => role.name).join(', ')
-              : "null"}
-          </span>
-        </div>
-      </div>
+      <Modal
+        title="Xác thực mật khẩu"
+        open={isPasswordModalVisible}
+        onCancel={() => setIsPasswordModalVisible(false)}
+        footer={null}
+        destroyOnClose
+        width={400}
+        style={{ top: 20 }}
+      >
+        <Form form={passwordForm} onFinish={handleVerifyPassword} layout="vertical" autoComplete="off">
+          <Form.Item
+            name="password"
+            label="Mật khẩu hiện tại"
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+          >
+            <Input.Password />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Xác nhận
+            </Button>
+            <Button
+              onClick={() => setIsPasswordModalVisible(false)}
+              className="ms-2"
+            >
+              Hủy
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
 
-      <style jsx>{`
-        .account-container {
-          max-width: 800px;
-          margin: 2rem auto;
-          padding: 20px;
-          background-color: #f8f9fa;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-          color: #2c3e50;
-          border-bottom: 2px solid #3498db;
-          padding-bottom: 0.5rem;
-        }
-
-        .user-info-section, .account-info-section {
-          margin: 2rem 0;
-          padding: 1.5rem;
-          background-color: white;
-          border-radius: 8px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        h2 {
-          color: #34495e;
-          margin-bottom: 1.5rem;
-        }
-
-        .info-row {
-          display: flex;
-          margin-bottom: 1rem;
-          padding: 0.5rem;
-          border-bottom: 1px solid #eee;
-        }
-
-        .info-label {
-          flex: 0 0 200px;
-          font-weight: 600;
-          color: #7f8c8d;
-        }
-
-        .info-value {
-          flex: 1;
-          color: #2c3e50;
-        }
-
-        .loading-spinner {
-          text-align: center;
-          padding: 2rem;
-          font-size: 1.2rem;
-          color: #3498db;
-        }
-
-        .error-message {
-          color: #e74c3c;
-          padding: 2rem;
-          text-align: center;
-          font-weight: bold;
-        }
-      `}</style>
+      <Modal
+        title="Sửa thông tin"
+        open={isEditModalVisible}
+        onCancel={() => {
+          setIsEditModalVisible(false);
+          setVerifiedPassword('');
+        }}
+        footer={null}
+        destroyOnClose
+        width={700}
+        style={{ top: 20 }}
+        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+      >
+        <Form form={form} onFinish={handleUpdateUser} layout="vertical" autoComplete="off">
+          <Form.Item
+            name="lastName"
+            label="Họ"
+            rules={[{ required: true, message: 'Vui lòng nhập họ!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="firstName"
+            label="Tên"
+            rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, type: 'email', message: 'Vui lòng nhập email hợp lệ!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="dob"
+            label="Ngày sinh"
+            rules={[
+              { required: true, message: 'Vui lòng chọn ngày sinh!' },
+              {
+                validator: (_, value) => {
+                  if (value && moment().diff(moment(value), 'years') < 18) {
+                    return Promise.reject(new Error('Bạn phải đủ 18 tuổi!'));
+                  }
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <input
+              type="date"
+              className="form-control"
+              value={form.getFieldValue('dob') || ''}
+              onChange={(e) => form.setFieldsValue({ dob: e.target.value })}
+              max={moment().format('YYYY-MM-DD')}
+            />
+          </Form.Item>
+          <Form.Item
+            name="residencyStatus"
+            label="Trạng thái cư trú"
+            rules={[{ required: true, message: 'Vui lòng chọn trạng thái cư trú!' }]}
+          >
+            <Select>
+              <Option value="THUONG_TRU">Thường trú</Option>
+              <Option value="TAM_TRU">Tạm trú</Option>
+              <Option value="TAM_VANG">Tạm vắng</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Mật khẩu"
+            rules={[{ validator: validatePassword }]}
+            help="Mật khẩu phải có ít nhất 9 ký tự, ít nhất một chữ hoa, ít nhất một ký tự đặc biệt (ví dụ: !@#$%^&*(),.?)."
+            validateTrigger={['onChange', 'onBlur']}
+          >
+            <Input.Password />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Lưu thay đổi
+            </Button>
+            <Button
+              onClick={() => {
+                setIsEditModalVisible(false);
+                setVerifiedPassword('');
+              }}
+              className="ms-2"
+            >
+              Hủy
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

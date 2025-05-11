@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext"; 
 import { NavbarProvider } from "./context/NavbarContext"; 
-import { LayoutProvider } from './context/LayoutContext';
 import NavbarSelector from "./components/NavbarSelector";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -19,6 +18,10 @@ import Vehicle from "./pages/auth/admin/Vehicle";
 import Guest from "./pages/auth/guest/Guest";
 import Resident from "./pages/auth/resident/Resident";
 import Settings from "./pages/addon/settings/Settings";
+import ResidentComplain from "./pages/auth/resident/Complain";
+import Announcement from "./pages/auth/resident/Announcement";
+import Parking from "./pages/auth/resident/Parking";
+import Contribution from "./pages/auth/resident/Contribution";
 import Login from "./pages/login/Login";
 import Signup from "./pages/signup/Signup";
 
@@ -34,11 +37,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 function App() {
   return (
     <div>  {/* ✅ Bọc App trong div để tránh lỗi Bootstrap layout */}
-    <LayoutProvider>
       <NavbarSelector />
       <Routes>
         <Route path="/" element={<Splash />} />
-        <Route path="/lobby" element={<Lobby />} />
+        <Route path="/admin" element={<Lobby />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot" element={<Forgot />} />
@@ -62,9 +64,12 @@ function App() {
           <Route path="/admin/vehicle" element={<Vehicle />} />
 
           <Route path="/resident" element={<Resident />} />
+          <Route path="/resident/complain" element={<ResidentComplain />} />
+          <Route path="/resident/announcement" element={<Announcement />} />
+          <Route path="/resident/parking" element={<Parking />} />
+          <Route path="/resident/contribution" element={<Contribution />} />
         </Route>
       </Routes>
-      </LayoutProvider>
     </div>
   );
 }

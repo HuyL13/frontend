@@ -1,0 +1,101 @@
+.parking-container {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.parking-card, .vehicle-card {
+  transition: all 0.3s ease;
+}
+
+.parking-card:hover, .vehicle-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.parking-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.vehicle-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.border-blue-500 {
+  border-color: #1890ff !important;
+}
+
+.tag-green {
+  background-color: #52c41a;
+  color: white;
+}
+
+.tag-red {
+  background-color: #f5222d;
+  color: white;
+}
+
+.tag-blue {
+  background-color: #1890ff;
+  color: white;
+}
+
+.tag-gray {
+  background-color: #d9d9d9;
+  color: #595959;
+}
+
+.parking-icon.car::before, .vehicle-icon.car::before {
+  content: "🚗";
+  margin-right: 8px;
+}
+
+.parking-icon.motorbike::before, .vehicle-icon.motorbike::before {
+  content: "🏍️";
+  margin-right: 8px;
+}
+
+.vehicle-info {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.ant-divider-horizontal.ant-divider-with-text-left {
+  margin: 24px 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.ant-btn-danger {
+  background-color: #f5222d;
+  border-color: #f5222d;
+}
+
+.ant-btn-danger:hover {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+/* Căn giữa chữ theo chiều dọc, căn trái theo chiều ngang trong ô nhập biển số */
+.license-input .ant-input {
+  text-align: left; /* Căn trái theo chiều ngang */
+  height: 40px;
+  line-height: 40px !important;
+  padding: 0 11px; /* Giữ padding mặc định của Ant Design */
+}
+
+/* Loại bỏ phần CSS liên quan đến prefix vì không còn biểu tượng */
