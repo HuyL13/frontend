@@ -5,6 +5,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import "../../../styles/Resident.css";
 
+import { Modal, Descriptions,Button,Tag } from 'antd';
+
+
 const Resident = () => {
   const [fees, setFees] = useState([]);
   const [room, setRoom] = useState([]);
@@ -211,35 +214,84 @@ const Resident = () => {
         </div>
       </div>
 
-      {/* Modal chi tiết khoản phí */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Chi tiết khoản phí</h5>
-                <button type="button" className="close close-btn" onClick={() => setShowModal(false)}>
-                  ×
-                </button>
-              </div>
-              <div className="modal-body">
-                {selectedFee && (
-                  <>
-                    <p><strong>Diễn giải:</strong> {selectedFee.description}</p>
-                    <p><strong>Phòng:</strong> {selectedFee.roomNumber}</p>
-                    <p><strong>Số tiền:</strong> {selectedFee.amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
-                    <p><strong>Hạn thanh toán:</strong> {format(new Date(selectedFee.dueDate), 'dd/MM/yyyy')}</p>
-                    <p><strong>Trạng thái:</strong> {selectedFee.status}</p>
-                  </>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Đóng</button>
-              </div>
-            </div>
+  <Modal
+    title="Chi tiết khoản phí"
+    visible={showModal}
+    onCancel={() => setShowModal(false)}
+    footer={[
+      <Button 
+        key="close" 
+        type="primary" 
+        onClick={() => setShowModal(false)}
+      >
+        Đóng
+      </Button>
+    ]}
+    width={1200}
+    bodyStyle={{ padding: '16px 24px' }}
+  >
+    {selectedFee && (
+      <Descriptions 
+        column={1}
+        bordered
+        size="middle"
+        labelStyle={{
+          width: '35%',
+          minWidth: 120,
+          fontWeight: 500,
+          backgroundColor: '#fafafa',
+          padding: '8px 12px',
+          borderRight: '1px solid #f0f0f0',
+          boxSizing: 'border-box'
+        }}
+        contentStyle={{
+          width: '65%',
+          padding: '8px 12px',
+          wordBreak: 'break-word',
+          boxSizing: 'border-box',
+          maxWidth: '100%'
+        }}
+        style={{ 
+          maxWidth: '60%',
+          margin: 0 
+        }}
+      >
+        <Descriptions.Item label="Diễn giải">
+          <div style={{ maxWidth: '60%' }}>
+            {selectedFee.description}
           </div>
-        </div>
-      )}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Phòng">
+          {selectedFee.roomNumber}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Số tiền">
+          <span style={{ whiteSpace: 'nowrap' }}>
+            {selectedFee.amount.toLocaleString('vi-VN', { 
+              style: 'currency', 
+              currency: 'VND' 
+            })}
+          </span>
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Hạn thanh toán">
+          {format(new Date(selectedFee.dueDate), 'dd/MM/yyyy')}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Trạng thái">
+          <Tag 
+            color={selectedFee.status === 'Đã thanh toán' ? 'green' : 'red'}
+            style={{ margin: 0 }}
+          >
+            {selectedFee.status}
+          </Tag>
+        </Descriptions.Item>
+      </Descriptions>
+    )}
+  </Modal>
+)}
     </div>
   );
 };

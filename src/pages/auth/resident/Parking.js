@@ -42,7 +42,7 @@ const Parking = () => {
 
   const fetchRoomIds = async () => {
     try {
-      const response = await fetch(`${baseURL}/users/room`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/room`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ const Parking = () => {
   const fetchLots = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${baseURL}/api/vehicles`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -83,29 +83,53 @@ const Parking = () => {
   };
 
   const fetchMyVehicles = async () => {
-    const roomId = localStorage.getItem('roomId');
-    if (!roomId) {
-      message.error('Không tìm thấy roomId. Vui lòng đăng nhập lại.');
+  try {
+    // First, fetch all room IDs associated with the user
+    const roomsResponse = await fetch(`${baseURL}/users/room`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    if (!roomsResponse.ok) {
+      throw new Error('Không thể tải danh sách roomId');
+    }
+    
+    const roomsData = await roomsResponse.json();
+    
+    if (!roomsData || roomsData.length === 0) {
+      message.warning('Không tìm thấy phòng nào cho tài khoản này.');
+      setMyVehicles([]);
       return;
     }
-    try {
-      const response = await fetch(`${baseURL}/api/vehicles/${roomId}/vehicles-with-lots`, {
+    
+    // Fetch vehicles for each room and combine the results
+    const allVehicles = [];
+    
+    for (const room of roomsData) {
+      const roomId = room.id;
+      
+      const vehiclesResponse = await fetch(`${baseURL}/api/vehicles/${roomId}/vehicles-with-lots`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
-      if (!response.ok) {
-        throw new Error('Không thể tải danh sách xe của bạn');
+      
+      if (vehiclesResponse.ok) {
+        const vehiclesData = await vehiclesResponse.json();
+        allVehicles.push(...vehiclesData);
       }
-      const data = await response.json();
-      setMyVehicles(data);
-    } catch {
-      message.error('Không thể tải danh sách xe của bạn');
     }
-  };
-
+    
+    setMyVehicles(allVehicles);
+  } catch (error) {
+    message.error('Không thể tải danh sách xe của bạn: ' + (error.message || 'Lỗi không xác định'));
+  }
+};
   const handleCreateVehicle = async (values) => {
     try {
       const selectedRoomId = values.roomId;
@@ -119,7 +143,7 @@ const Parking = () => {
         type: values.type,
       };
 
-      const response = await fetch(`${baseURL}/api/vehicles/room/${selectedRoomId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles/room/${selectedRoomId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +169,7 @@ const Parking = () => {
   const handleAssign = async (lotId, vehicleId) => {
     try {
       setAssignLoading(true);
-      const response = await fetch(`${baseURL}/api/vehicles/${lotId}/assign-vehicle/${vehicleId}`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles/${lotId}/assign-vehicle/${vehicleId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +218,7 @@ const Parking = () => {
       setRegisterAssignLoading(true);
 
       // Step 1: Register vehicle
-      const registerRes = await fetch(`${baseURL}/api/vehicles/room/${values.roomId}`, {
+      const registerRes = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles/room/${values.roomId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -216,7 +240,7 @@ const Parking = () => {
 
       // Step 2: Assign vehicle to lot
       const assignRes = await fetch(
-        `${baseURL}/api/vehicles/${selectedLot.id}/assign-vehicle/${vehicle.id}`,
+        `https://backend-13-6qob.onrender.com/demo/api/vehicles/${selectedLot.id}/assign-vehicle/${vehicle.id}`,
         {
           method: 'POST',
           headers: {
@@ -247,7 +271,7 @@ const Parking = () => {
   const handleUnassign = async (vehicleId) => {
     setUnassignLoading(true);
     try {
-      const response = await fetch(`${baseURL}/api/vehicles/${vehicleId}/unassign`, {
+      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles/${vehicleId}/unassign`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -270,72 +294,82 @@ const Parking = () => {
   const myVehicleIds = myVehicles.map(v => v.vehicleId);
 
   const renderLotsByType = (typeLabel, typeKey) => {
-    const filteredLots = parkingLots.filter(lot => lot.type === typeKey);
-    return (
-      <div style={{ marginBottom: '2rem' }}>
-        <Divider orientation="left">Khu vực {typeLabel}</Divider>
-        <Row gutter={[16, 16]}>
-          {filteredLots.map(lot => {
-            const isMine = lot.vehicleIds?.some(id => myVehicleIds.includes(id));
-            const lotVehicle = myVehicles.find(v => v.parkingLot?.lotNumber === lot.lotNumber);
-            return (
-              <Col span={6} key={lot.id} className="parking-grid">
-                <Card bordered className={`parking-card ${isMine ? 'border-blue-500' : ''}`}>
-                  <div className="flex justify-between items-center mb-2">
-                    <span>
-                      <span className={`parking-icon ${lot.type === 'CAR' ? 'car' : 'motorbike'}`}></span>
-                      <strong>Lot {lot.lotNumber}</strong>
-                    </span>
-                    <Tag className={lot.occupied ? 'tag-red' : 'tag-green'}>
-                      {lot.occupied ? 'Đã có xe' : 'Còn trống'}
+  const filteredLots = parkingLots.filter(lot => lot.type === typeKey);
+  return (
+    <div style={{ marginBottom: '2rem' }}>
+      <Divider orientation="left">Khu vực {typeLabel}</Divider>
+      <Row gutter={[16, 16]}>
+        {filteredLots.map(lot => {
+          const isMine = lot.vehicleIds?.some(id => myVehicleIds.includes(id));
+          // Sửa ở đây: thêm điều kiện lọc theo type
+          const lotVehicle = myVehicles.find(v => 
+            v.parkingLot?.lotNumber === lot.lotNumber && 
+            v.type === typeKey // Thêm kiểm tra loại phương tiện
+          );
+          
+          return (
+            <Col span={6} key={lot.id} className="parking-grid">
+              <Card bordered className={`parking-card ${isMine ? 'border-blue-500' : ''}`}>
+                <div className="flex justify-between items-center mb-2">
+                  <span>
+                    <span className={`parking-icon ${lot.type === 'CAR' ? 'car' : 'motorbike'}`}></span>
+                    <strong>Lot {lot.lotNumber}</strong>
+                  </span>
+                  <Tag className={lot.occupied ? 'tag-red' : 'tag-green'}>
+                    {lot.occupied ? 'Đã có xe' : 'Còn trống'}
+                  </Tag>
+                </div>
+                <div>Type: <Tag>{lot.type}</Tag></div>
+                {lotVehicle && (
+                  <div className="vehicle-info">
+                    Xe của bạn: {lotVehicle.licensePlate}
+                    {/* Thêm hiển thị loại xe */}
+                    <Tag color={lotVehicle.type === 'CAR' ? 'blue' : 'purple'} style={{ marginLeft: 8 }}>
+                      {lotVehicle.type === 'CAR' ? 'Ô tô' : 'Xe máy'}
                     </Tag>
+                    <Button
+                      danger
+                      size="small"
+                      className="ml-2"
+                      onClick={() => handleUnassign(lotVehicle.vehicleId)}
+                      loading={unassignLoading}
+                    >
+                      Hủy đăng ký
+                    </Button>
                   </div>
-                  <div>Type: <Tag>{lot.type}</Tag></div>
-                  {lotVehicle && (
-                    <div className="vehicle-info">
-                      Xe của bạn: {lotVehicle.licensePlate}
-                      <Button
-                        danger
-                        size="small"
-                        className="ml-2"
-                        onClick={() => handleUnassign(lotVehicle.vehicleId)}
-                        loading={unassignLoading}
-                      >
-                        Hủy đăng ký
-                      </Button>
-                    </div>
-                  )}
-                  {!lot.occupied && (
-                    <Tooltip title="Nhấn để đăng ký xe của bạn">
-                      <Button
-                        type="primary"
-                        block
-                        className="mt-3"
-                        loading={assignLoading}
-                        onClick={() => {
-                          const available = myVehicles.filter(
-                            v => !v.parkingLot && v.type === lot.type
-                          );
-                          if (available.length > 0) {
-                            handleAssign(lot.id, available[0].vehicleId);
-                          } else {
-                            setSelectedLot(lot);
-                            setRegisterAssignModalOpen(true);
-                          }
-                        }}
-                      >
-                        Đăng ký lot này
-                      </Button>
-                    </Tooltip>
-                  )}
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
-      </div>
-    );
-  };
+                )}
+                {!lot.occupied && (
+                  <Tooltip title="Nhấn để đăng ký xe của bạn">
+                    <Button
+                      type="primary"
+                      block
+                      className="mt-3"
+                      loading={assignLoading}
+                      onClick={() => {
+                        // Thêm kiểm tra type khi filter
+                        const available = myVehicles.filter(
+                          v => !v.parkingLot && v.type === typeKey
+                        );
+                        if (available.length > 0) {
+                          handleAssign(lot.id, available[0].vehicleId);
+                        } else {
+                          setSelectedLot(lot);
+                          setRegisterAssignModalOpen(true);
+                        }
+                      }}
+                    >
+                      Đăng ký lot này
+                    </Button>
+                  </Tooltip>
+                )}
+              </Card>
+            </Col>
+          );
+        })}
+      </Row>
+    </div>
+  );
+};
 
   const renderVehicleList = () => {
     return (
@@ -353,9 +387,7 @@ const Parking = () => {
                       <span className={`vehicle-icon ${vehicle.type === 'CAR' ? 'car' : 'motorbike'}`}></span>
                       <strong>{vehicle.licensePlate}</strong>
                     </span>
-                    <Tag className={vehicle.parkingLot ? 'tag-blue' : 'tag-gray'}>
-                      {vehicle.parkingLot ? `Lot ${vehicle.parkingLot.lotNumber}` : 'Chưa gán'}
-                    </Tag>
+                    
                   </div>
                   <div>Type: <Tag>{vehicle.type}</Tag></div>
                   {vehicle.parkingLot && (
@@ -383,9 +415,7 @@ const Parking = () => {
       <Row justify="space-between" className="mb-4">
         <h2>Quản lý bãi đỗ xe</h2>
         <div>
-          <Button icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)} className="mr-2">
-            Tạo phương tiện
-          </Button>
+          
           <Button icon={<ReloadOutlined />} onClick={() => { fetchLots(); fetchMyVehicles(); }}>
             Làm mới
           </Button>

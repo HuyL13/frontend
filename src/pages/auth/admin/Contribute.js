@@ -118,71 +118,73 @@ const Contribute = () => {
     }
   };
 
-  const validateDates = (startDate, endDate) => {
-    if (!startDate || !endDate) {
-      return false;
-    }
-    
-    const today = moment().startOf('day');
-    const start = moment(startDate).startOf('day');
-    const end = moment(endDate).startOf('day');
-    
-    if (start.isBefore(today)) {
-      message.error('Start date cannot be before today');
-      return false;
-    }
-    
-    if (end.isBefore(start)) {
-      message.error('End date cannot be before start date');
-      return false;
-    }
-    
-    return true;
-  };
+  const validateDates = (startDate, endDate, isEdit = false) => {
+  if (!startDate || !endDate) {
+    return false;
+  }
+  
+  const today = moment().startOf('day');
+  const start = moment(startDate).startOf('day');
+  const end = moment(endDate).startOf('day');
+  
+  
+  if (end.isBefore(start)) {
+    message.error('End date cannot be before start date');
+    return false;
+  }
+  
+  return true;
+};
+
 
   const handleCreateUpdate = async (values) => {
-    // Validate dates
-    if (!validateDates(values.startDate, values.endDate)) {
-      return;
+   const isEdit = !!selectedContribution;
+  const startDate = values.startDate ? moment(values.startDate) : null;
+  const endDate = values.endDate ? moment(values.endDate) : null;
+  
+  // Validate dates
+  if (!validateDates(startDate, endDate)) {
+    return;
+  }
+  
+  try {
+    setSubmitLoading(true);
+    const token = localStorage.getItem("authToken");
+    const url = selectedContribution 
+      ? `${API_BASE_URL}/admin/contribute/${selectedContribution.id}`
+      : `${API_BASE_URL}/admin/contribute`;
+
+    // Format dates properly for API
+    const payload = {
+      ...values,
+      startDate: startDate.format(DATE_FORMAT),
+      endDate: endDate.format(DATE_FORMAT)
+    };
+
+    const response = await fetch(url, {
+      method: selectedContribution ? 'PUT' : 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Operation failed: ${response.status}`);
     }
     
-    try {
-      setSubmitLoading(true);
-      const token = localStorage.getItem("authToken");
-      const url = selectedContribution 
-        ? `${API_BASE_URL}/admin/contribute/${selectedContribution.id}`
-        : `${API_BASE_URL}/admin/contribute`;
-
-      // Format dates properly
-      const payload = {
-        ...values
-        // We don't need to format dates here as they are already in YYYY-MM-DD format from input
-      };
-
-      const response = await fetch(url, {
-        method: selectedContribution ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Operation failed: ${response.status}`);
-      }
-      
-      message.success(`Contribution ${selectedContribution ? 'updated' : 'created'} successfully`);
-      setModalVisible(false);
-      fetchData();
-      form.resetFields();
-    } catch (error) {
-      message.error(`Error: ${error.message}`);
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
+    message.success(`Contribution ${selectedContribution ? 'updated' : 'created'} successfully`);
+    setModalVisible(false);
+    fetchData();
+    form.resetFields();
+  } catch (error) {
+    message.error(`Error: ${error.message}`);
+  } finally {
+    setSubmitLoading(false);
+  }
+};
 
   const handleDelete = async (id) => {
     const ok = window.confirm('Are you sure you want to delete this contribute?');
@@ -629,9 +631,15 @@ const Contribute = () => {
   }, []);
 
   // Function to get today's date in YYYY-MM-DD format
-  const getTodayDateString = () => {
-    return moment().format(DATE_FORMAT);
-  };
+ 
+  useEffect(() => {
+  // Listen for changes to startDate and update endDate constraint
+  form.getFieldValue('startDate') && form.validateFields(['endDate']);
+}, [form.getFieldValue('startDate')]);
+
+const getTodayDateString = () => {
+  return moment().format(DATE_FORMAT);
+};
 
   return (
     <div className="p-4">
@@ -783,63 +791,76 @@ const Contribute = () => {
           </Form.Item>
 
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="startDate"
-                label="Start Date"
-                rules={[{ 
-                  required: true, 
-                  message: 'Please select start date!'
-                }]}
-              >
-                <Input 
-                  type="date"
-                  min={getTodayDateString()}
-                  className="ant-input"
-                  onChange={(e) => {
-                    // When start date changes, clear end date if it's before start date
-                    const newStartDate = e.target.value;
-                    const currentEndDate = form.getFieldValue('endDate');
-                    
-                    if (currentEndDate && currentEndDate < newStartDate) {
-                      form.setFieldsValue({ endDate: '' });
-                    }
-                  }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="endDate"
-                label="End Date"
-                dependencies={['startDate']}
-                rules={[{ 
-                  required: true, 
-                  message: 'Please select end date!',
-                  validator: (_, value) => {
-                    const startDate = form.getFieldValue('startDate');
-                    if (!startDate) {
-                      return Promise.reject('Please select start date first!');
-                    }
-                    if (!value) {
-                      return Promise.reject('Please select end date!');
-                    }
-                    if (value < startDate) {
-                      return Promise.reject('End date must be after start date!');
-                    }
-                    return Promise.resolve();
-                  }
-                }]}
-              >
-                <Input 
-                  type="date"
-                  className="ant-input"
-                  min={form.getFieldValue('startDate') || getTodayDateString()}
-                  disabled={!form.getFieldValue('startDate')}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+  <Col span={12}>
+    <Form.Item
+      name="startDate"
+      label="Start Date"
+      rules={[{ 
+        required: true, 
+        message: 'Please select start date!'
+      }, {
+        validator: (_, value) => {
+          if (!value) return Promise.resolve();
+          const startDate = form.getFieldValue('startDate');
+          
+          if (!startDate) {
+            return Promise.reject('Please select start date first!');
+          }
+          
+          const start = moment(startDate).startOf('day');
+          const end = moment(value).startOf('day');
+          
+          if (end.isBefore(start)) {
+            return Promise.reject('End date must be after start date!');
+          }
+          return Promise.resolve();
+        }
+      }]}
+    >
+      <Input 
+        type="date"
+        className="ant-input"
+        min={form.getFieldValue('startDate') || getTodayDateString()}
+        
+      />
+    </Form.Item>
+  </Col>
+  <Col span={12}>
+    <Form.Item
+      name="endDate"
+      label="End Date"
+      dependencies={['startDate']}
+      rules={[{ 
+        required: true, 
+        message: 'Please select end date!'
+      }, {
+        validator: (_, value) => {
+          if (!value) return Promise.resolve();
+          const startDate = form.getFieldValue('startDate');
+          
+          if (!startDate) {
+            return Promise.reject('Please select start date first!');
+          }
+          
+          const start = moment(startDate).startOf('day');
+          const end = moment(value).startOf('day');
+          
+          if (end.isBefore(start)) {
+            return Promise.reject('End date must be after start date!');
+          }
+          return Promise.resolve();
+        }
+      }]}
+    >
+      <Input 
+        type="date"
+        className="ant-input"
+        min={form.getFieldValue('startDate') || getTodayDateString()}
+        
+      />
+    </Form.Item>
+  </Col>
+</Row>
 
           <Form.Item
             name="active"

@@ -220,14 +220,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                     <i className="ik ik-user" style={{ width: '20px' }}></i>
                     <span>Profile</span>
                   </NavLink>
-                  <NavLink 
-                    to="/settings" 
-                    style={dropdownStyles.dropdownItem}
-                    activeStyle={{ backgroundColor: '#f8f9fa' }}
-                  >
-                    <i className="ik ik-settings" style={{ width: '20px' }}></i>
-                    <span>Settings</span>
-                  </NavLink>
+                  
                   <div style={{ 
                     height: '1px', 
                     backgroundColor: '#eee', 
@@ -345,13 +338,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                   </NavLink>
                 </div>
 
-                <div className="nav-lavel" style={!sidebarOpen ? {display: 'none'} : {}}>Cài đặt</div>
-                <div className="nav-item">
-                  <NavLink to="/settings" className="nav-link">
-                    <i className="ik ik-settings" style={{marginRight: '10px'}}></i>
-                    <span style={!sidebarOpen ? {display: 'none'} : {}}>Cấu hình hệ thống</span>
-                  </NavLink>
-                </div>
+                
               </nav>
             </div>
           </div>
