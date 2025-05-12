@@ -569,20 +569,17 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     {
       title: 'Username',
       dataIndex: 'username',
-      key: 'username',
-      sorter: (a, b) => a.username.localeCompare(b.username)
+      key: 'username'
     },
     {
       title: 'Họ & Tên',
       key: 'fullName',
-      render: (_, record) => `${record.firstName} ${record.lastName}`,
-      sorter: (a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+      render: (_, record) => `${record.firstName} ${record.lastName}`
     },
     {
       title: 'Email',
       dataIndex: 'email',
-      key: 'email',
-      sorter: (a, b) => a.email.localeCompare(b.email)
+      key: 'email'
     },
     {
       title: 'Tình trạng cư trú',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { List, Button, Modal, Form, Input, Select, message, Spin, Table, Tag, Avatar, Tooltip } from 'antd';
+import { List, Button, Modal, Form, Input, Select, message, Spin, Table, Tag, Avatar, Tooltip ,Descriptions} from 'antd';
 
 const { Option, OptGroup } = Select;
 const { TextArea } = Input;
@@ -19,6 +19,17 @@ const Complain = () => {
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [isResolveModalVisible, setIsResolveModalVisible] = useState(false);
   const [resolveForm] = Form.useForm();
+
+  const [selectedDetailComplaint, setSelectedDetailComplaint] = useState(null);
+const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+
+
+const handleCellClick = (record, dataIndex) => {
+  if (['description', 'response'].includes(dataIndex)) {
+    setSelectedDetailComplaint({...record, field: dataIndex});
+    setIsDetailModalVisible(true);
+  }
+};
 
   // Fetch complaints based on filters
   const fetchComplaints = async () => {
@@ -270,12 +281,21 @@ const columns = [
     key: 'id',
     width: '6%',
   },
-  {
+   {
     title: 'Description',
     dataIndex: 'description',
     key: 'description',
     ellipsis: true,
     width: '15%',
+    render: (text, record) => (
+      <div 
+        onClick={() => handleCellClick(record, 'description')}
+        className="cursor-pointer hover:text-blue-500"
+        style={{ cursor: 'pointer' }}
+      >
+        {text}
+      </div>
+    ),
   },
   {
     title: 'Response',
@@ -283,7 +303,15 @@ const columns = [
     key: 'response',
     ellipsis: true,
     width: '12%',
-    render: (response) => response || 'No response yet',
+    render: (text, record) => (
+      <div 
+        onClick={() => handleCellClick(record, 'response')}
+        className="cursor-pointer hover:text-blue-500"
+        style={{ cursor: 'pointer' }}
+      >
+        {text || 'No response yet'}
+      </div>
+    ),
   },
   {
     title: 'Status',
@@ -503,6 +531,62 @@ const columns = [
           </Form.Item>
         </Form>
       </Modal>
+      
+<Modal
+  title={`Complaint Detail #${selectedDetailComplaint?.id || ''}`}
+  open={isDetailModalVisible}
+  onCancel={() => setIsDetailModalVisible(false)}
+  footer={null}
+  width={800}
+  bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+>
+  {selectedDetailComplaint && (
+    <div className="space-y-4">
+      <Descriptions bordered column={1}>
+        <Descriptions.Item label="Description">
+          <div className="whitespace-pre-wrap p-2 bg-gray-50 rounded">
+            {selectedDetailComplaint.description}
+          </div>
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Response">
+          <div className="whitespace-pre-wrap p-2 bg-gray-50 rounded">
+            {selectedDetailComplaint.response || 'No response yet'}
+          </div>
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Status">
+          {getStatusTag(selectedDetailComplaint.status)}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Priority">
+          {getPriorityTag(selectedDetailComplaint.prior)}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Type">
+          {getTypeTag(selectedDetailComplaint.type)}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Created At">
+          {new Date(selectedDetailComplaint.createdAt).toLocaleString()}
+        </Descriptions.Item>
+        
+        <Descriptions.Item label="Users">
+          {renderUserTags(selectedDetailComplaint.userIds)}
+        </Descriptions.Item>
+      </Descriptions>
+      
+      <div className="mt-4 flex justify-end">
+        <Button 
+          type="primary" 
+          onClick={() => setIsDetailModalVisible(false)}
+        >
+          Close
+        </Button>
+      </div>
+    </div>
+  )}
+</Modal>
     </div>
   );
 };

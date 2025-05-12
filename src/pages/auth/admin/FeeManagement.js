@@ -429,40 +429,30 @@ const FeeManagement = () => {
       title: 'Số phòng',
       dataIndex: 'roomNumber',
       key: 'roomNumber',
-      sorter: (a, b) => a.roomNumber - b.roomNumber,
-      sortOrder: sortedInfo.field === 'roomNumber' && sortedInfo.order,
       render: value => `Phòng ${value}`
     },
     {
       title: 'Mô tả',
       dataIndex: 'description',
-      key: 'description',
-      sorter: (a, b) => a.description - b.description,
-      sortOrder: sortedInfo.field === 'description' && sortedInfo.order,
+      key: 'description'
       
     },
     {
       title: 'Số tiền',
       dataIndex: 'amount',
       key: 'amount',
-      sorter: (a, b) => a.amount - b.amount,
-      sortOrder: sortedInfo.field === 'amount' && sortedInfo.order,
       render: value => `${Number(value).toLocaleString('vi-VN')} VND`
     },
     {
       title: 'Hạn thanh toán',
       dataIndex: 'dueDate',
       key: 'dueDate',
-      sorter: (a, b) => a.dueDate - b.dueDate,
-      sortOrder: sortedInfo.field === 'dueDate' && sortedInfo.order,
       render: value => moment(value).format('DD/MM/YYYY')
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      sorter: (a, b) => a.status - b.status,
-      sortOrder: sortedInfo.field === 'status' && sortedInfo.order,
       render: (status, record) => (
         <Select
           value={status}
@@ -698,7 +688,7 @@ const FeeManagement = () => {
           >
             <Input 
               type="number" 
-              min={1001} 
+              min={2000} 
               step="1000" 
               placeholder="Nhập số tiền" 
               suffix="VND" 
@@ -767,8 +757,8 @@ const FeeManagement = () => {
             >
               <Input 
                 type="number" 
-                min={0} 
-                step="0.01" 
+                min={2000} 
+                step="1000" 
                 placeholder="Nhập số tiền" 
                 suffix="VND" 
               />
