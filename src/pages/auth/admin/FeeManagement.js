@@ -33,6 +33,7 @@ const { Title } = Typography;
 const { Option } = Select;
 const { confirm } = Modal;
 
+
 const FeeManagement = () => {
   const [fees, setFees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,8 @@ const FeeManagement = () => {
   const [editForm] = Form.useForm();
   const [searchForm] = Form.useForm();
   const [uploadForm] = Form.useForm();
+
+  const [sortedInfo, setSortedInfo] = useState({});
 
   const [searchCriteria, setSearchCriteria] = useState({
     roomNumber: '',
@@ -120,6 +123,29 @@ const FeeManagement = () => {
     
     setPagination(pagination);
     handleSearchFees(params);
+    setSortedInfo(sorter);
+    let data = [...fees];
+    if (sorter && sorter.field) {
+      data.sort((a, b) => {
+        const { field, order } = sorter;
+        let valA = a[field];
+        let valB = b[field];
+
+        // For date fields
+        if (field === 'dueDate') {
+          valA = new Date(valA);
+          valB = new Date(valB);
+        }
+
+        if (typeof valA === 'string') {
+          return order === 'ascend'
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        }
+        return order === 'ascend' ? valA - valB : valB - valA;
+      });
+    }
+    setFees(data);
   };
 
   const handleSearchSubmit = () => {
@@ -403,34 +429,40 @@ const FeeManagement = () => {
       title: 'Số phòng',
       dataIndex: 'roomNumber',
       key: 'roomNumber',
-      sorter: true,
+      sorter: (a, b) => a.roomNumber - b.roomNumber,
+      sortOrder: sortedInfo.field === 'roomNumber' && sortedInfo.order,
       render: value => `Phòng ${value}`
     },
     {
       title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
-      sorter: true
+      sorter: (a, b) => a.description - b.description,
+      sortOrder: sortedInfo.field === 'description' && sortedInfo.order,
+      
     },
     {
       title: 'Số tiền',
       dataIndex: 'amount',
       key: 'amount',
-      sorter: true,
+      sorter: (a, b) => a.amount - b.amount,
+      sortOrder: sortedInfo.field === 'amount' && sortedInfo.order,
       render: value => `${Number(value).toLocaleString('vi-VN')} VND`
     },
     {
       title: 'Hạn thanh toán',
       dataIndex: 'dueDate',
       key: 'dueDate',
-      sorter: true,
+      sorter: (a, b) => a.dueDate - b.dueDate,
+      sortOrder: sortedInfo.field === 'dueDate' && sortedInfo.order,
       render: value => moment(value).format('DD/MM/YYYY')
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      sorter: true,
+      sorter: (a, b) => a.status - b.status,
+      sortOrder: sortedInfo.field === 'status' && sortedInfo.order,
       render: (status, record) => (
         <Select
           value={status}

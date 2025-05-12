@@ -350,12 +350,10 @@ const Parking = () => {
                         const available = myVehicles.filter(
                           v => !v.parkingLot && v.type === typeKey
                         );
-                        if (available.length > 0) {
-                          handleAssign(lot.id, available[0].vehicleId);
-                        } else {
+                        
                           setSelectedLot(lot);
                           setRegisterAssignModalOpen(true);
-                        }
+                        
                       }}
                     >
                       Đăng ký lot này

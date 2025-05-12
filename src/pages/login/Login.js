@@ -80,20 +80,26 @@ const Login = () => {
   };
 
   return (
-    <div className="row g-0 auth-wrapper">
+    <div className="row g-0 auth-wrapper login-wrapper">
       <div className="col-12 col-md-5 col-lg-6 h-100">
   <div className="auth-background-holder"></div>
-  <div style={{ width: '100%', height: '100%' }}>
-    <img
-      src={chungCu}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover' // hoặc 'contain' nếu muốn toàn bộ ảnh hiển thị mà không bị cắt
-      }}
-      alt="Chung cư"
-    />
-  </div>
+  <div style={{ width: '108%', height: '100%', overflow: 'hidden' }}>
+  <div style={{ width: '108%', height: '100%', overflow: 'hidden' }}>
+  <img
+    src={chungCu}
+    style={{
+      width: 'calc(100% + 8vw)',
+      height: '100%',
+      objectFit: 'cover',
+      marginLeft: '-8vw',
+      zIndex: 999009,
+      display: 'block',
+    }}
+    alt="Chung cư"
+  />
+</div>
+</div>
+
 </div>
 
 

@@ -70,7 +70,9 @@ const UserManagement = () => {
     username: '',
     firstName: '',
     lastName: '',
-    email: ''
+    email: '',
+  residencyStatus: null, 
+  roles: []
   });
   const [pagination, setPagination] = useState({
     current: 1,
@@ -153,6 +155,12 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
         size: params.size || 10,
         sort: params.sort || 'username,asc'
       });
+
+      const searchBody = {
+      ...searchCriteria,
+      // Chuyển mảng roles thành chuỗi phân cách bằng dấu phẩy
+      roles: searchCriteria.roles.join(',')
+    };
   
       const response = await fetch(
         `https://backend-13-6qob.onrender.com/demo/search/users?${queryParams}`,
@@ -162,11 +170,12 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(searchCriteria),
+          body: JSON.stringify(searchBody),
         }
       );
   
       const data = await response.json();
+      console.log(data);
       setSearchResults(data.content);
       setPagination({
         current: (params.page || 0) + 1,
@@ -854,79 +863,114 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
       )}
 
        {/* Search Modal */}
-       <Modal
-        title="Tìm kiếm nâng cao"
-        visible={isSearchModalVisible}
-        onCancel={() => setIsSearchModalVisible(false)}
-        footer={[
-          <Button key="reset" onClick={() => setSearchCriteria({})}>
-            Đặt lại
-          </Button>,
-          <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
-            Hủy
-          </Button>,
-          <Button
-            key="search"
-            type="primary"
-            onClick={() => {
-              handleSearchUsers();
-              setIsSearchModalVisible(false);
-            }}
-          >
-            Tìm kiếm
-          </Button>
-        ]}
-        width={600}
-      >
-        <Form layout="vertical">
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Username">
-                <Input
-                  value={searchCriteria.username}
-                  onChange={(e) =>
-                    setSearchCriteria({ ...searchCriteria, username: e.target.value })
-                  }
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Email">
-                <Input
-                  value={searchCriteria.email}
-                  onChange={(e) =>
-                    setSearchCriteria({ ...searchCriteria, email: e.target.value })
-                  }
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Họ">
-                <Input
-                  value={searchCriteria.firstName}
-                  onChange={(e) =>
-                    setSearchCriteria({ ...searchCriteria, firstName: e.target.value })
-                  }
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Tên">
-                <Input
-                  value={searchCriteria.lastName}
-                  onChange={(e) =>
-                    setSearchCriteria({ ...searchCriteria, lastName: e.target.value })
-                  }
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Modal>
+<Modal
+  title="Tìm kiếm nâng cao"
+  visible={isSearchModalVisible}
+  onCancel={() => setIsSearchModalVisible(false)}
+  footer={[
+    <Button key="reset" onClick={() => setSearchCriteria({})}>
+      Đặt lại
+    </Button>,
+    <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
+      Hủy
+    </Button>,
+    <Button
+      key="search"
+      type="primary"
+      onClick={() => {
+        handleSearchUsers();
+        setIsSearchModalVisible(false);
+      }}
+    >
+      Tìm kiếm
+    </Button>
+  ]}
+  width={600}
+>
+  <Form layout="vertical">
+    <Row gutter={16}>
+      <Col span={12}>
+        <Form.Item label="Username">
+          <Input
+            value={searchCriteria.username}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, username: e.target.value })
+            }
+          />
+        </Form.Item>
+      </Col>
+      <Col span={12}>
+        <Form.Item label="Email">
+          <Input
+            value={searchCriteria.email}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, email: e.target.value })
+            }
+          />
+        </Form.Item>
+      </Col>
+    </Row>
+    
+    <Row gutter={16}>
+      <Col span={12}>
+        <Form.Item label="Họ">
+          <Input
+            value={searchCriteria.firstName}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, firstName: e.target.value })
+            }
+          />
+        </Form.Item>
+      </Col>
+      <Col span={12}>
+        <Form.Item label="Tên">
+          <Input
+            value={searchCriteria.lastName}
+            onChange={(e) =>
+              setSearchCriteria({ ...searchCriteria, lastName: e.target.value })
+            }
+          />
+        </Form.Item>
+      </Col>
+    </Row>
 
+    <Row gutter={16}>
+      <Col span={12}>
+        <Form.Item label="Tình trạng cư trú">
+          <Select
+            placeholder="Chọn tình trạng"
+            allowClear
+            value={searchCriteria.residencyStatus}
+            onChange={(value) => 
+              setSearchCriteria({ ...searchCriteria, residencyStatus: value })
+            }
+          >
+            {residencyOptions.map(option => (
+              <Select.Option key={option.value} value={option.value}>
+                {option.label}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Col>
+      <Col span={12}>
+        <Form.Item label="Vai trò">
+          <Select
+            mode="multiple"
+            placeholder="Chọn vai trò"
+            value={searchCriteria.roles}
+            onChange={(values) => 
+              setSearchCriteria({ ...searchCriteria, roles: values })
+            }
+          >
+            <Select.Option value="ADMIN">ADMIN</Select.Option>
+            <Select.Option value="USER">USER</Select.Option>
+          </Select>
+        </Form.Item>
+      </Col>
+    </Row>
+  </Form>
+</Modal>
       {/* Create User Modal */}
       <Modal
         title="Thêm người dùng mới"

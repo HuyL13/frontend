@@ -10,8 +10,9 @@ const Signup = () => {
     password: "",
     firstName: "",
     lastName: "",
+    dob: "",
     email: "",
-    dateOfBirth: "",
+    
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -122,6 +123,18 @@ const Signup = () => {
                   />
                 </div>
 
+                
+
+                <div className="mb-3">
+                  <input
+                    type="date"
+                    className="form-control"
+                    placeholder="Ngày sinh"
+                    value={formData.dob}
+                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                    disabled={loading}
+                  />
+                </div>
                 <div className="mb-3">
                   <input
                     type="email"
@@ -129,17 +142,6 @@ const Signup = () => {
                     placeholder="Email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <input
-                    type="date"
-                    className="form-control"
-                    placeholder="Ngày sinh"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                     disabled={loading}
                   />
                 </div>
