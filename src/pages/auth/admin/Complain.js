@@ -240,7 +240,7 @@ const handleCellClick = (record, dataIndex) => {
   // Render user tags for each complaint
   const renderUserTags = (userIds) => {
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      return <span className="text-gray-500">No users</span>;
+      return <span className="text-gray-500">Không có người dùng</span>;
     }
 
     return (
@@ -282,11 +282,11 @@ const columns = [
     width: '6%',
   },
    {
-    title: 'Description',
+    title: 'Mô tả',
     dataIndex: 'description',
     key: 'description',
     ellipsis: true,
-    width: '15%',
+    width: '10%',
     render: (text, record) => (
       <div 
         onClick={() => handleCellClick(record, 'description')}
@@ -298,7 +298,7 @@ const columns = [
     ),
   },
   {
-    title: 'Response',
+    title: 'Phản hồi',
     dataIndex: 'response',
     key: 'response',
     ellipsis: true,
@@ -314,44 +314,38 @@ const columns = [
     ),
   },
   {
-    title: 'Status',
+    title: 'Trạng thái',
     dataIndex: 'status',
     key: 'status',
     width: '10%',
     render: (status) => getStatusTag(status),
   },
   {
-    title: 'Priority',
+    title: 'Độ ưu tiên',
     dataIndex: 'prior',
     key: 'priority',
     width: '12%',
     render: (priority) => getPriorityTag(priority),
   },
   {
-    title: 'Type',
+    title: 'Loại',
     dataIndex: 'type',
     key: 'type',
     width: '10%',
     render: (type) => getTypeTag(type),
   },
   {
-    title: 'Created At',
+    title: 'Tạo ra lúc',
     dataIndex: 'createdAt',
     key: 'createdAt',
     width: '8%',
     render: (date) => new Date(date).toLocaleDateString(),
   },
+  
   {
-    title: 'Users',
-    dataIndex: 'userIds',
-    key: 'userIds',
-    width: '13%',
-    render: renderUserTags,
-  },
-  {
-    title: 'Actions',
+    title: 'Thao tác',
     key: 'actions',
-    width: '13%',
+    width: '20%',
     render: (_, record) => (
       <span className="space-x-2">
         <Button 
@@ -359,7 +353,7 @@ const columns = [
           onClick={() => openResolveModal(record)}
           className="text-blue-500"
         >
-          Edit/Resolve
+          Chỉnh sửa/Phản hồi
         </Button>
         <Button 
           type="link" 
@@ -367,68 +361,68 @@ const columns = [
           onClick={() => handleDelete(record.id)}
           className="text-red-500"
         >
-          Delete
+          Xóa
         </Button>
       </span>
     ),
   },
 ];
 
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  if (error) return <div className="p-4 text-red-500">Lỗi: {error}</div>;
 
   return (
     <div className="p-4">
       <div className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Complaint Management</h1>
+        <h1 className="text-2xl font-bold">Quản lý khiếu nại</h1>
       </div>
 
       {/* Filters */}
       <div className="mb-4">
-        <h3 className="text-lg font-medium mb-2">Filter Complaints</h3>
+        <h3 className="text-lg font-medium mb-2">Lọc khiếu nại</h3>
         <div className="flex flex-wrap gap-6">
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700">Status&nbsp;&nbsp;</label>
+            <label className="mb-1 font-medium text-gray-700">Trạng thái&nbsp;&nbsp;</label>
             <Select
               value={filters.status}
               onChange={(value) => setFilters({ ...filters, status: value })}
-              placeholder="All Statuses"
+              placeholder="Mọi trạng thái"
               className="w-40"
               allowClear
             > 
-              <Option value="WAITING">Waiting</Option>
-              <Option value="IN_PROGRESS">In Progress</Option>
-              <Option value="RESOLVED">Resolved</Option>
+              <Option value="WAITING">Đang chờ xử lý</Option>
+              <Option value="IN_PROGRESS">Đang xử lý</Option>
+              <Option value="RESOLVED">Đã xử lý</Option>
             </Select>
           </div>
 
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700">Priority</label>
+            <label className="mb-1 font-medium text-gray-700">Độ ưu tiên&nbsp;</label>
             <Select
               value={filters.priority}
               onChange={(value) => setFilters({ ...filters, priority: value })}
-              placeholder="All Priorities"
+              placeholder="Mọi mức ưu tiên"
               className="w-40"
               allowClear
             > 
-              <Option value="HIGH">High</Option>
-              <Option value="MEDIUM">Medium</Option>
-              <Option value="LOW">Low</Option>
+              <Option value="HIGH">Cao</Option>
+              <Option value="MEDIUM">Vừa</Option>
+              <Option value="LOW">Thấp</Option>
             </Select>
           </div>
 
           <div className="flex flex-col">
-            <label className="mb-1 font-medium text-gray-700">Type&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <label className="mb-1 font-medium text-gray-700">Hình thức&nbsp;&nbsp;</label>
 
             <Select
               value={filters.type}
               onChange={(value) => setFilters({ ...filters, type: value })}
-              placeholder="All Types"
+              placeholder="Mọi hình thức"
               className="w-40"
               allowClear
             >
-              <Option value="FACILITY">Facility</Option>
-              <Option value="FEE">Fee</Option>
-              <Option value="SECURITY">Security</Option>
+              <Option value="FACILITY">Cơ sở vật chất</Option>
+              <Option value="FEE">Các khoản phí</Option>
+              <Option value="SECURITY">An ninh</Option>
             </Select>
           </div>
           
@@ -438,7 +432,7 @@ const columns = [
               className="bg-blue-500 hover:bg-blue-600" 
               onClick={() => fetchComplaints()}
             >
-              Apply Filters
+              Chọn bộ lọc
             </Button>
           </div>
         </div>
@@ -457,7 +451,7 @@ const columns = [
 
       {/* Resolve/Edit Modal */}
       <Modal
-        title={`Update Complaint #${selectedComplaint?.id || ''}`}
+        title={`Sửa đổi / Phản hồi khiếu nại#${selectedComplaint?.id || ''}`}
         open={isResolveModalVisible}
         onCancel={() => setIsResolveModalVisible(false)}
         footer={null}
@@ -471,46 +465,46 @@ const columns = [
         >
           <Form.Item
             name="response"
-            label="Admin Response"
+            label="Phản hồi của quản trị viên"
             rules={[
-              { required: true, message: 'Please input your response!' },
-              { max: 500, message: 'Response cannot exceed 500 characters!' }
+              { required: true, message: 'Hãy điền phản hồi!' },
+              { max: 500, message: 'Phản hồi không quá 500 ký tự!' }
             ]}
           >
             <TextArea 
               rows={4} 
               showCount 
               maxLength={500} 
-              placeholder="Enter your response..."
+              placeholder="Điền phản hồi..."
             />
           </Form.Item>
 
           <Form.Item
             name="priority"
-            label="Priority"
-            rules={[{ required: true, message: 'Please select priority!' }]}
+            label="Độ ưu tiên"
+            rules={[{ required: true, message: 'Hãy chọn độ ưu tiên!' }]}
           >
-            <Select placeholder="Select priority">
-              <Option value="HIGH">High</Option>
-              <Option value="MEDIUM">Medium</Option>
-              <Option value="LOW">Low</Option>
+            <Select placeholder="Chọn độ ưu tiên">
+              <Option value="HIGH">Cao</Option>
+              <Option value="MEDIUM">Vừa</Option>
+              <Option value="LOW">Thấp</Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status!' }]}
+            label="Trạng thái"
+            rules={[{ required: true, message: 'Hãy chọn trạng thái!' }]}
           >
             <Select placeholder="Select status">
-              <Option value="RESOLVED">Resolved</Option>
-              <Option value="IN_PROGRESS">In Progress</Option>
-              <Option value="WAITING">Waiting</Option>
+              <Option value="RESOLVED">Đã xử lý</Option>
+              <Option value="IN_PROGRESS">Đang xử lý</Option>
+              <Option value="WAITING">Đang chờ xử lý</Option>
             </Select>
           </Form.Item>
 
           {selectedComplaint && selectedComplaint.userIds && selectedComplaint.userIds.length > 0 && (
-            <Form.Item label="Tagged Users">
+            <Form.Item label="Người dùng được gắn">
               {renderUserTags(selectedComplaint.userIds)}
             </Form.Item>
           )}
@@ -518,14 +512,14 @@ const columns = [
           <Form.Item className="mb-0">
             <div className="flex justify-end space-x-2">
               <Button onClick={() => setIsResolveModalVisible(false)}>
-                Cancel
+                Hủy
               </Button>
               <Button 
                 type="primary" 
                 htmlType="submit"
                 className="bg-blue-500 hover:bg-blue-600"
               >
-                Save Changes
+                Lưu thay đổi
               </Button>
             </div>
           </Form.Item>
@@ -533,7 +527,7 @@ const columns = [
       </Modal>
       
 <Modal
-  title={`Complaint Detail #${selectedDetailComplaint?.id || ''}`}
+  title={`Chi tiết khiếu nại #${selectedDetailComplaint?.id || ''}`}
   open={isDetailModalVisible}
   onCancel={() => setIsDetailModalVisible(false)}
   footer={null}
@@ -543,35 +537,35 @@ const columns = [
   {selectedDetailComplaint && (
     <div className="space-y-4">
       <Descriptions bordered column={1}>
-        <Descriptions.Item label="Description">
+        <Descriptions.Item label="Mô tả">
           <div className="whitespace-pre-wrap p-2 bg-gray-50 rounded">
             {selectedDetailComplaint.description}
           </div>
         </Descriptions.Item>
         
-        <Descriptions.Item label="Response">
+        <Descriptions.Item label="Phản hồi">
           <div className="whitespace-pre-wrap p-2 bg-gray-50 rounded">
-            {selectedDetailComplaint.response || 'No response yet'}
+            {selectedDetailComplaint.response || 'Chưa có phản hồi'}
           </div>
         </Descriptions.Item>
         
-        <Descriptions.Item label="Status">
+        <Descriptions.Item label="Trạng thái">
           {getStatusTag(selectedDetailComplaint.status)}
         </Descriptions.Item>
         
-        <Descriptions.Item label="Priority">
+        <Descriptions.Item label="Độ ưu tiên">
           {getPriorityTag(selectedDetailComplaint.prior)}
         </Descriptions.Item>
         
-        <Descriptions.Item label="Type">
+        <Descriptions.Item label="Loại">
           {getTypeTag(selectedDetailComplaint.type)}
         </Descriptions.Item>
         
-        <Descriptions.Item label="Created At">
+        <Descriptions.Item label="Thời gian tạo">
           {new Date(selectedDetailComplaint.createdAt).toLocaleString()}
         </Descriptions.Item>
         
-        <Descriptions.Item label="Users">
+        <Descriptions.Item label="Người dùng">
           {renderUserTags(selectedDetailComplaint.userIds)}
         </Descriptions.Item>
       </Descriptions>
@@ -581,7 +575,7 @@ const columns = [
           type="primary" 
           onClick={() => setIsDetailModalVisible(false)}
         >
-          Close
+          Đóng
         </Button>
       </div>
     </div>

@@ -119,13 +119,13 @@ const Notifications = () => {
         throw new Error(errorData.message || `Request failed with status ${response.status}`);
       }
       
-      message.success('Announcement created successfully');
+      message.success('Tạo thành công thông báo mới');
       await fetchAnnouncements();
       setIsCreateModalVisible(false);
       createForm.resetFields();
     } catch (err) {
       console.error('Error creating announcement:', err);
-      message.error(err.message || 'Failed to create announcement');
+      message.error(err.message || 'Có lỗi xảy ra khi tạo thông báo.Vui lòng thử lại');
     }
     finally{
       setCreatingLoading(false);
@@ -133,7 +133,7 @@ const Notifications = () => {
   };
 
   const handleDelete = async (id) => {
-    const ok = window.confirm('Are you sure you want to delete this notification?');
+    const ok = window.confirm('Bạn có chắc chắn muốn xóa thông báo này?');
   if (!ok) return;
     setDeletingId(id);
     try {
@@ -146,9 +146,9 @@ const Notifications = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to delete announcement');
+      if (!response.ok) throw new Error('Lỗi khi xóa thông báo.Vui lòng thử lại');
       
-      message.success('Announcement deleted successfully');
+      message.success('Xóa thành công thông báo');
       await fetchAnnouncements();
     } catch (err) {
       message.error(err.message);
@@ -174,9 +174,9 @@ const Notifications = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to send announcement');
+      if (!response.ok) throw new Error('Lỗi khi gửi thông báo.Vui lòng gửi lại');
       
-      message.success('Announcement sent to all users successfully');
+      message.success('Gưie thành công thông báo');
     } catch (err) {
       message.error(err.message);
     }
@@ -189,7 +189,7 @@ const Notifications = () => {
      setSendingSpecificLoading(true);
     try {
       if (selectedUserIds.length === 0) {
-        message.error('Please select at least one user');
+        message.error('Hãy chọn ít nhất 1 người nhận thông báo');
         return;
       }
       
@@ -236,10 +236,8 @@ const Notifications = () => {
   const getTypeColor = (type) => {
     switch (type) {
       case 'INFORMATION': return 'text-blue-500';
-      case 'WARNING': return 'text-yellow-500';
-      case 'URGENT': return 'text-red-500';
-      case 'MAINTENANCE': return 'text-orange-500';
-      case 'EVENT': return 'text-green-500';
+      case 'WARNING': return 'text-red-500';
+      
       default: return 'text-gray-500';
     }
   };
@@ -249,8 +247,7 @@ const Notifications = () => {
       case 'INFORMATION': return <Tag color="blue">{type}</Tag>;
       case 'WARNING': return <Tag color="yellow">{type}</Tag>;
       case 'URGENT': return <Tag color="red">{type}</Tag>;
-      case 'MAINTENANCE': return <Tag color="orange">{type}</Tag>;
-      case 'EVENT': return <Tag color="green">{type}</Tag>;
+      
       default: return <Tag color="default">{type}</Tag>;
     }
   };
@@ -269,7 +266,7 @@ const Notifications = () => {
       key: 'id',
     },
     {
-      title: 'Name',
+      title: 'Tên',
       dataIndex: 'name',
       key: 'name',
       render: (_, record) => `${record.firstName || ''} ${record.lastName || ''}`.trim() || 'N/A',
@@ -280,7 +277,7 @@ const Notifications = () => {
       key: 'email',
     },
     {
-      title: 'Username',
+      title: 'Tên tài khoản',
       dataIndex: 'username',
       key: 'username',
     },
@@ -298,13 +295,13 @@ const Notifications = () => {
             onClick={() => setIsCreateModalVisible(true)}
             className="bg-blue-500 hover:bg-blue-600"
           >
-            Create New Announcement
+            Tạo thông báo mới
           </Button>
           <Button 
             onClick={openSendSpecificModal}
             className="bg-green-500 hover:bg-green-600 text-green"
           >
-            Send to Specific Users
+           Gửi cho một nhóm
           </Button>
         </div>
       </div>
@@ -322,7 +319,7 @@ const Notifications = () => {
                   loading={sendingToAllId === item.id}
                   className="text-blue-500"
                 >
-                  Send to All
+                  Gửi cho toàn thể 
                 </Button>,
                 <Button 
                   type="link" 
@@ -331,7 +328,7 @@ const Notifications = () => {
                    loading={deletingId === item.id}
                   className="text-red-500"
                 >
-                  Delete
+                  Xóa
                 </Button>
               ]}
             >
@@ -340,7 +337,7 @@ const Notifications = () => {
                   <div className="flex items-center">
                     {getTypeTag(item.type)}
                     <span className={`ml-2 font-semibold ${getTypeColor(item.type)}`}>
-                      Announcement #{item.id}
+                      Thông báo #{item.id}
                     </span>
                   </div>
                 }
@@ -353,7 +350,7 @@ const Notifications = () => {
 
       {/* Create Announcement Modal */}
       <Modal
-        title="Create New Announcement"
+        title="Tạo thông báo mới"
         visible={isCreateModalVisible}
         onCancel={() => setIsCreateModalVisible(false)}
         loading={creatingLoading}
@@ -368,31 +365,31 @@ const Notifications = () => {
         >
           <Form.Item
             name="description"
-            label="Description"
+            label="Mô tả"
             rules={[
-              { required: true, message: 'Please input description!' },
-              { max: 500, message: 'Description cannot exceed 500 characters!' }
+              { required: true, message: 'Hyax điền mô tả!' },
+              { max: 500, message: 'Mô tả không quá 500 kí tựtự!' }
             ]}
           >
             <Input.TextArea 
               rows={4} 
               showCount 
               maxLength={500} 
-              placeholder="Enter announcement content..."
+              placeholder="Điền thông tin thông báo..."
             />
           </Form.Item>
 
           <Form.Item
             name="type"
-            label="Type"
-            rules={[{ required: true, message: 'Please select type!' }]}
+            label="Loại"
+            rules={[{ required: true, message: 'Hyax chọn loại thông báo!' }]}
           >
             <Select
-              placeholder="Select announcement type"
+              placeholder="Chọn loại thông báo"
               className="w-full"
             >
-              <Option value="INFORMATION">Information</Option>
-              <Option value="WARNING">Warning</Option>
+              <Option value="INFORMATION">Thông tin</Option>
+              <Option value="WARNING">Cảnh báo</Option>
               
             </Select>
           </Form.Item>
@@ -400,14 +397,14 @@ const Notifications = () => {
           <Form.Item className="mb-0">
             <div className="flex justify-end space-x-2">
               <Button onClick={() => setIsCreateModalVisible(false)}>
-                Cancel
+                Hủy
               </Button>
               <Button 
                 type="primary" 
                 htmlType="submit"
                 className="bg-blue-500 hover:bg-blue-600"
               >
-                Create
+                Tạo
               </Button>
             </div>
           </Form.Item>
@@ -416,7 +413,7 @@ const Notifications = () => {
 
       {/* Send to Specific Users Modal */}
       <Modal
-        title="Send Announcement to Specific Users"
+        title="Gửi cho một nhóm người dùng"
         visible={isSendSpecificModalVisible}
         onCancel={() => setIsSendSpecificModalVisible(false)}
         footer={null}
@@ -431,38 +428,38 @@ const Notifications = () => {
         >
           <Form.Item
             name="description"
-            label="Description"
+            label="Mô tả"
             rules={[
-              { required: true, message: 'Please input description!' },
-              { max: 500, message: 'Description cannot exceed 500 characters!' }
+              { required: true, message: 'Hãy điền mô tả!' },
+              { max: 500, message: 'Mô tả không quá 500 kí tự!' }
             ]}
           >
             <Input.TextArea 
               rows={4} 
               showCount 
               maxLength={500} 
-              placeholder="Enter announcement content..."
+              placeholder="Điền các thông tin cho thông báo..."
             />
           </Form.Item>
 
           <Form.Item
             name="type"
-            label="Type"
-            rules={[{ required: true, message: 'Please select type!' }]}
+            label="Loại"
+            rules={[{ required: true, message: 'Hãy chọn loại thônng báo!' }]}
           >
             <Select
-              placeholder="Select announcement type"
+              placeholder="Chọn loại thông báo"
               className="w-full"
             >
-              <Option value="INFORMATION">Information</Option>
-              <Option value="WARNING">Warning</Option>
+              <Option value="INFORMATION">Thông tin</Option>
+              <Option value="WARNING">Cảnh báo</Option>
               
             </Select>
           </Form.Item>
 
           <Form.Item
-            label="Select Users"
-            help={`Selected ${selectedUserIds.length} users`}
+            label="Chọn người nhận"
+            help={`Chọn ${selectedUserIds.length} người dùng`}
             required
           >
             <Spin spinning={loadingUsers}>
@@ -484,7 +481,7 @@ const Notifications = () => {
           <Form.Item className="mb-0">
             <div className="flex justify-end space-x-2">
               <Button onClick={() => setIsSendSpecificModalVisible(false)}>
-                Cancel
+                Hủy
               </Button>
               <Button 
                 type="primary" 
@@ -493,7 +490,7 @@ const Notifications = () => {
                 disabled={selectedUserIds.length === 0}
         loading={sendingSpecificLoading}
               >
-                Send to {selectedUserIds.length} users
+                Gửi đến {selectedUserIds.length} người dùng
               </Button>
             </div>
           </Form.Item>

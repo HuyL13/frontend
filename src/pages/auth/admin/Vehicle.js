@@ -342,26 +342,26 @@ const Vehicle = () => {
       width: '10%',
     },
     {
-      title: 'Lot Number',
+      title: 'Số hiệu lot',
       dataIndex: 'lotNumber',
       key: 'lotNumber',
       sorter: (a, b) => a.lotNumber.localeCompare(b.lotNumber),
       width: '20%',
     },
     {
-      title: 'Type',
+      title: 'Loại',
       dataIndex: 'type',
       key: 'type',
       render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>,
       filters: [
-        { text: 'Car', value: 'CAR' },
-        { text: 'Motorbike', value: 'MOTORBIKE' },
+        { text: 'Ô tô', value: 'CAR' },
+        { text: 'Xe máy', value: 'MOTORBIKE' },
       ],
       onFilter: (value, record) => record.type === value,
       width: '15%',
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'occupied',
       render: occupied => (
         <Tag color={occupied ? 'red' : 'green'}>
@@ -369,14 +369,14 @@ const Vehicle = () => {
         </Tag>
       ),
       filters: [
-        { text: 'Occupied', value: true },
-        { text: 'Available', value: false },
+        { text: 'Đã có phương tiện', value: true },
+        { text: 'Trống', value: false },
       ],
       onFilter: (value, record) => record.occupied === value,
       width: '15%',
     },
     {
-      title: 'Vehicles',
+      title: 'Phương tiện',
       dataIndex: 'vehicleIds',
       render: (ids, record) => {
         if (!ids || ids.length === 0) return 'None';
@@ -389,7 +389,7 @@ const Vehicle = () => {
       width: '15%',
     },
     {
-    title: 'Actions',
+    title: 'Thao tác',
     key: 'actions',
     render: (_, record) => {
       // Chỉ hiển thị nút Unassign nếu có xe
@@ -402,7 +402,7 @@ const Vehicle = () => {
           onClick={() => handleUnassign(record.id, selectedOccupiedLot?.id)}
           loading={unassignLoading[record.id]}
         >
-          Unassign
+          Rời chỗ
         </Button>
       );
     },
@@ -418,20 +418,20 @@ const Vehicle = () => {
       width: '15%',
     },
     {
-      title: 'License Plate',
+      title: 'Biển số',
       dataIndex: 'licensePlate',
       key: 'licensePlate',
       width: '20%',
     },
     {
-      title: 'Type',
+      title: 'Loại',
       dataIndex: 'type',
       key: 'type',
       render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>,
       width: '15%',
     },
     {
-    title: 'Actions',
+    title: 'Thao tác',
     key: 'actions',
     render: (_, record) => {
       // Chỉ hiển thị nút Unassign nếu có xe
@@ -442,7 +442,7 @@ const Vehicle = () => {
           onClick={() => handleUnassign(record.id, selectedOccupiedLot?.id)}
           loading={unassignLoading[record.id]}
         >
-          Unassign
+          Rời chỗ
         </Button>
       );
     },
@@ -473,14 +473,14 @@ const Vehicle = () => {
             title={
               <>
                 <div><strong>Lot {lot.lotNumber}</strong> (ID: {lot.id})</div>
-                <div>Status: {lot.occupied ? 'Occupied' : 'Available'}</div>
+                <div>Trạng thái: {lot.occupied ? 'Đã có phương tiện' : 'Trống'}</div>
                 {lot.occupied && lot.vehicleIds?.length > 0 && (
-                  <div>Vehicle IDs: {lot.vehicleIds.join(', ')}</div>
+                  <div>ID phương tiện: {lot.vehicleIds.join(', ')}</div>
                 )}
                 {lot.occupied && vehicleInfo?.licensePlate?.length > 0 && (
-                  <div>License Plate(s): {vehicleInfo.licensePlate.join(', ')}</div>
+                  <div>Biển số: {vehicleInfo.licensePlate.join(', ')}</div>
                 )}
-                {!lot.occupied && <div>Click to register and assign a vehicle</div>}
+                {!lot.occupied && <div>Nhấn vào để đăng kí phwong tiện và đặt chỗ</div>}
               </>
             }
             key={lot.id}
@@ -529,7 +529,7 @@ const Vehicle = () => {
     return (
       <div className="parking-section">
         <h3 className="text-lg font-semibold mb-2">
-          {type === 'CAR' ? 'Car' : 'Motorbike'} Parking Area
+          Bãi đỗ {type === 'CAR' ? 'Ô tô' : 'Xe máy'} 
         </h3>
         <div 
           className="parking-grid"
@@ -560,7 +560,7 @@ const Vehicle = () => {
           <Col span={12}>
             <Card bordered={false} className="stat-card">
               <Statistic 
-                title="Car Parking"
+                title="Bãi đỗ ô tô"
                 value={`${occupiedCarLots} / ${carLots.length}`}
                 description={`${((occupiedCarLots / carLots.length) * 100).toFixed(1)}% occupied`}
                 icon={<CarOutlined style={{ color: '#1890ff' }} />}
@@ -570,7 +570,7 @@ const Vehicle = () => {
           <Col span={12}>
             <Card bordered={false} className="stat-card">
               <Statistic 
-                title="Motorbike Parking"
+                title="Bãi đỗ xe máy"
                 value={`${occupiedMotorbikeLots} / ${motorbikeLots.length}`}
                 description={`${((occupiedMotorbikeLots / motorbikeLots.length) * 100).toFixed(1)}% occupied`}
                 icon={<CarOutlined style={{ color: '#fa8c16' }} />}
@@ -607,7 +607,7 @@ const Vehicle = () => {
     if (unassignedVehicles.length === 0) return null;
     
     return (
-      <Card title="Unassigned Vehicles" className="mt-4">
+      <Card title="Rời chỗ" className="mt-4">
         <Table
           dataSource={unassignedVehicles}
           columns={[
@@ -617,18 +617,18 @@ const Vehicle = () => {
               key: 'id',
             },
             {
-              title: 'License Plate',
+              title: 'Biển số',
               dataIndex: 'licensePlate',
               key: 'licensePlate',
             },
             {
-              title: 'Type',
+              title: 'Loại',
               dataIndex: 'type',
               key: 'type',
               render: type => <Tag color={type === 'CAR' ? 'blue' : 'orange'}>{type}</Tag>
             },
             {
-              title: 'Actions',
+              title: 'Thao tác',
               key: 'actions',
               render: (_, record) => (
                 <Button 
@@ -640,7 +640,7 @@ const Vehicle = () => {
                     });
                   }}
                 >
-                  Assign to Lot
+                  Đặt chỗ 
                 </Button>
               )
             }
@@ -655,7 +655,7 @@ const Vehicle = () => {
   return (
     <div className="p-4">
       <div className="flex justify-between mb-4">
-        <Title level={2}>Parking Management System</Title>
+        <Title level={2}>Quản lý bãi đỗ xe </Title>
         <div className="space-x-2">
           <Button 
             type="primary" 
@@ -663,7 +663,7 @@ const Vehicle = () => {
             onClick={() => setCreateVisible(true)}
             loading={createLoading}
           >
-            Register Vehicle
+            Đăng kí phương tiện
           </Button>
           <Button 
             type="primary"
@@ -671,7 +671,7 @@ const Vehicle = () => {
             onClick={() => setAssignVisible(true)}
             loading={assignLoading}
           >
-            Assign Vehicle
+            Đặt chỗ phương tiện
           </Button>
           <Button 
             icon={<ReloadOutlined />} 
@@ -682,7 +682,7 @@ const Vehicle = () => {
             }}
             title="Refresh data"
           >
-            Refresh
+            Làm mới
           </Button>
           <Button 
             type={visualView ? "primary" : "default"} 
@@ -707,11 +707,11 @@ const Vehicle = () => {
             <div className="parking-legend">
               <div className="legend-item">
                 <div className="legend-color available"></div>
-                <span>Available (Click to register & assign)</span>
+                <span>Trống (Nhấn vào để đăng kí &đặt chỗ)</span>
               </div>
               <div className="legend-item">
                 <div className="legend-color occupied"></div>
-                <span>Occupied</span>
+                <span>Có phương tiện</span>
               </div>
             </div>
           </div>
@@ -735,9 +735,9 @@ const Vehicle = () => {
             title={
               <div className="flex justify-between items-center">
                 <span>
-                  Vehicles in {selectedLot.type} Lot {selectedLot.lotNumber} (ID: {selectedLot.id})
+                  Phương tiện trong {selectedLot.type} Lot {selectedLot.lotNumber} (ID: {selectedLot.id})
                 </span>
-                <Button onClick={() => setSelectedLot(null)}>Clear Selection</Button>
+                <Button onClick={() => setSelectedLot(null)}>Xóa các lựa chọn</Button>
               </div>
             }
             className="selected-lot-details"
@@ -763,7 +763,7 @@ const Vehicle = () => {
 
       {/* Create Vehicle Modal */}
       <Modal
-        title="Register New Vehicle"
+        title="Đăng kí mới phương tiện"
         open={createVisible}
         onCancel={() => setCreateVisible(false)}
         footer={null}
@@ -772,17 +772,17 @@ const Vehicle = () => {
         <Form form={form} onFinish={handleCreateVehicle} layout="vertical">
           <Form.Item
             name="roomId"
-            label="Room ID"
-            rules={[{ required: true, message: 'Please input room ID!' }]}
+            label="ID phòng"
+            rules={[{ required: true, message: 'Điền số phòng!' }]}
           >
-            <Input type="number" placeholder="Enter room number" prefix={<NumberOutlined />} />
+            <Input type="number" placeholder="Điền số phòng" prefix={<NumberOutlined />} />
           </Form.Item>
           <Form.Item
             name="licensePlate"
-            label="License Plate"
+            label="Biển số "
             dependencies={['type']}
             rules={[
-              { required: true, message: 'Please input license plate!' },
+              { required: true, message: 'Điền biển số!' },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   const type = getFieldValue('type');
@@ -800,17 +800,17 @@ const Vehicle = () => {
           </Form.Item>
           <Form.Item
             name="type"
-            label="Vehicle Type"
-            rules={[{ required: true, message: 'Please select type!' }]}
+            label="Loại phương tiện"
+            rules={[{ required: true, message: 'Chọn loại phương tiện!' }]}
           >
             <Select placeholder="Select vehicle type">
-              <Option value="CAR">Car</Option>
-              <Option value="MOTORBIKE">Motorbike</Option>
+              <Option value="CAR">Ô tô</Option>
+              <Option value="MOTORBIKE">Xe máy</Option>
             </Select>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={createLoading}>
-              Register Vehicle
+              Đăng kí phương tiện
             </Button>
           </Form.Item>
         </Form>
@@ -818,7 +818,7 @@ const Vehicle = () => {
 
       {/* Assign Vehicle Modal */}
       <Modal
-        title="Assign Vehicle to Parking Lot"
+        title="Đặt chỗ phwong tiện"
         open={assignVisible}
         onCancel={() => setAssignVisible(false)}
         footer={null}
@@ -827,21 +827,21 @@ const Vehicle = () => {
         <Form form={assignForm} onFinish={handleAssignVehicle} layout="vertical">
           <Form.Item
             name="vehicleId"
-            label="Vehicle ID"
-            rules={[{ required: true, message: 'Please input vehicle ID!' }]}
+            label="ID phương tiện"
+            rules={[{ required: true, message: 'Điền ID phương tiện!' }]}
           >
-            <Input type="number" placeholder="Enter vehicle ID" prefix={<CarOutlined />} />
+            <Input type="number" placeholder="Điền ID phương tiện" prefix={<CarOutlined />} />
           </Form.Item>
           <Form.Item
             name="lotId"
-            label="Parking Lot ID"
-            rules={[{ required: true, message: 'Please input lot ID!' }]}
+            label="ID vị trí đỗ"
+            rules={[{ required: true, message: 'Điền lot ID!' }]}
           >
-            <Input type="number" placeholder="Enter parking lot ID" prefix={<NumberOutlined />} />
+            <Input type="number" placeholder="Điền ID lot phương tiện đỗ" prefix={<NumberOutlined />} />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={assignLoading}>
-              Assign Vehicle
+              Đăng ksi phwong tiện
             </Button>
           </Form.Item>
         </Form>
@@ -849,7 +849,7 @@ const Vehicle = () => {
 
       {/* Register and Assign Vehicle Modal */}
       <Modal
-        title={`Register & Assign Vehicle to ${selectedEmptyLot?.type} Lot ${selectedEmptyLot?.lotNumber}`}
+        title={`Đăng kí và đặt chỗ phương tiện: ${selectedEmptyLot?.type} Lot ${selectedEmptyLot?.lotNumber}`}
         open={registerAssignModal}
         onCancel={() => setRegisterAssignModal(false)}
         footer={null}
@@ -858,16 +858,16 @@ const Vehicle = () => {
         <Form form={registerAssignForm} onFinish={handleRegisterAndAssign} layout="vertical">
           <Form.Item
             name="roomId"
-            label="Room ID"
+            label="ID phòng"
             rules={[{ required: true, message: 'Please input room ID!' }]}
           >
-            <Input type="number" placeholder="Enter room number" prefix={<NumberOutlined />} />
+            <Input type="number" placeholder="Điền số phòng" prefix={<NumberOutlined />} />
           </Form.Item>
           <Form.Item
   name="licensePlate"
-  label="License Plate"
+  label="Biển số"
   rules={[
-    { required: true, message: 'Please input license plate!' },
+    { required: true, message: 'Chọn biển số!' },
     ({ getFieldValue }) => ({
       validator(_, value) {
         const type = selectedEmptyLot?.type; // Lấy type từ parking lot đã chọn
@@ -887,22 +887,22 @@ const Vehicle = () => {
 </Form.Item>
           <Form.Item
             name="type"
-            label="Vehicle Type"
-            rules={[{ required: true, message: 'Please select type!' }]}
+            label="Loại phương tiện"
+            rules={[{ required: true, message: 'Chọn loại phương tiện!' }]}
           >
-            <Select placeholder="Select vehicle type" disabled>
-              <Option value="CAR">Car</Option>
-              <Option value="MOTORBIKE">Motorbike</Option>
+            <Select placeholder="Chọn loại phương tiện" disabled>
+              <Option value="CAR">Ô tô</Option>
+              <Option value="MOTORBIKE">Xe máy</Option>
             </Select>
           </Form.Item>
           <div className="p-2 mb-4 bg-blue-50 rounded border border-blue-200">
             <Text type="secondary">
-              This vehicle will be registered and assigned to Parking Lot ID: {selectedEmptyLot?.id}
+              Phương tiện này sẽ được đăng ksi và đặt chỗ tại lot có ID: {selectedEmptyLot?.id}
             </Text>
           </div>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={registerAssignLoading}>
-              Register & Assign Vehicle
+              Đăng kí và đặt chỗ
             </Button>
           </Form.Item>
         </Form>
@@ -910,7 +910,7 @@ const Vehicle = () => {
 
       
 <Modal
-  title={`Vehicles in ${selectedOccupiedLot?.type} Lot ${selectedOccupiedLot?.lotNumber}`}
+  title={`Phương tiện trong ${selectedOccupiedLot?.type} Lot ${selectedOccupiedLot?.lotNumber}`}
   open={modalVisible}
   onCancel={() => {
     setModalVisible(false);
@@ -930,7 +930,7 @@ const Vehicle = () => {
       />
     ) : (
       <div className="empty-message">
-        <Text type="secondary">No vehicles assigned to this lot</Text>
+        <Text type="secondary">Không có phương tiện nào trong lot này</Text>
       </div>
     )}
   </Spin>

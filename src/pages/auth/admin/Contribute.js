@@ -36,11 +36,10 @@ const Contribute = () => {
     id: null,
     userId: null,
     contributionId: null,
-    amount: null,
+    minAmount: null,
+    maxAmount: null,
     contributedAt: null,
-    approved: null,
-    startDate: null,
-    endDate: null
+    approved: null
   });
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
@@ -53,17 +52,105 @@ const Contribute = () => {
     total: 0
   });
 
-  // Handle pagination change for search tab
-  const handleSearchTableChange = (pagination, filters, sorter) => {
-    const params = {
-      page: pagination.current - 1,
-      size: pagination.pageSize,
-      sort: sorter.field ? `${sorter.field},${sorter.order === 'ascend' ? 'asc' : 'desc'}` : 'id,desc'
+
+  // Sửa hàm handleSearchRecords
+const handleSearchRecords = useCallback(async (params = {}, searchValues) => {
+  try {
+    setSearchLoading(true);
+    const token = localStorage.getItem("authToken");
+    const queryParams = new URLSearchParams({
+      page: params.page || searchPagination.current - 1,
+      size: params.size || searchPagination.pageSize,
+      sort: params.sort || 'id,desc'
+    });
+
+    // Sử dụng searchValues từ tham số đầu vào
+    let approvedValue = null;
+    if (searchValues?.approved === "true") {
+      approvedValue = true;
+    } else if (searchValues?.approved === "false") {
+      approvedValue = false;
+    }
+
+    const contributedAt = searchValues?.contributedAt 
+      ? moment(searchValues.contributedAt).format(DATE_FORMAT) 
+      : null;
+
+    const searchData = {
+      id: searchValues?.id || null,
+      userId: searchValues?.userId || null,
+      contributionId: searchValues?.contributionId || null,
+      minAmount: searchValues?.minAmount || null,
+      maxAmount: searchValues?.maxAmount || null,
+      contributedAt: contributedAt,
+      approved: approvedValue
     };
-    
-    setSearchPagination(pagination);
-    handleSearchRecords(params);
+
+    const response = await fetch(
+      `${API_BASE_URL}/search/contributionRecords?${queryParams}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(searchData)
+      }
+    );
+
+    if (!response.ok) throw new Error(`Search error: ${response.status}`);
+
+    const data = await response.json();
+    setSearchResults(data.content || []);
+    setSearchPagination({
+      current: (params.page || 0) + 1,
+      pageSize: params.size || 10,
+      total: data.totalElements || 0
+    });
+  } catch (error) {
+    message.error(`Error searching records: ${error.message}`);
+  } finally {
+    setSearchLoading(false);
+  }
+}, [searchPagination.current, searchPagination.pageSize]); // Chỉ phụ thuộc vào pagination
+
+// Sửa hàm handleSearchFormFinish
+const handleSearchFormFinish = (values) => {
+  if (values.minAmount && values.maxAmount && Number(values.minAmount) > Number(values.maxAmount)) {
+    message.error('Minimum amount cannot be greater than maximum amount');
+    return;
+  }
+
+  const formattedValues = {
+    id: values.id || null,
+    userId: values.userId || null,
+    contributionId: values.contributionId || null,
+    minAmount: values.minAmount || null,
+    maxAmount: values.maxAmount || null,
+    contributedAt: values.contributedAt || null,
+    approved: values.approved
   };
+
+  // Cập nhật state và gọi API với giá trị mới
+  setSearchCriteria(formattedValues);
+  handleSearchRecords({}, formattedValues); // Truyền trực tiếp giá trị vào
+  setIsSearchModalVisible(false);
+};
+
+// Sửa phần handleSearchTableChange
+const handleSearchTableChange = (pagination, filters, sorter) => {
+  const params = {
+    page: pagination.current - 1,
+    size: pagination.pageSize,
+    sort: sorter.field ? `${sorter.field},${sorter.order === 'ascend' ? 'asc' : 'desc'}` : 'id,desc'
+  };
+  
+  setSearchPagination(pagination);
+  handleSearchRecords(params, searchForm.getFieldsValue()); // Lấy giá trị hiện tại từ form
+};
+
+
+  
   
   const handleTableChange = (pagination, filters, sorter) => {
     const params = {
@@ -283,24 +370,24 @@ const Contribute = () => {
 
   const contributionColumns = [
     {
-      title: 'Title',
+      title: 'Tiêu đề',
       dataIndex: 'title',
       key: 'title',
     },
     {
-      title: 'Description',
+      title: 'Mô tả',
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
     },
     {
-      title: 'Dates',
+      title: 'Ngày',
       render: (_, record) => 
         `${moment(record.startDate).format(DATE_FORMAT)} - 
         ${moment(record.endDate).format(DATE_FORMAT)}`
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'active',
       render: active => (
         <Tag color={active ? 'green' : 'red'}>
@@ -309,7 +396,7 @@ const Contribute = () => {
       )
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       render: (_, record) => (
         <>
           <Button 
@@ -325,7 +412,7 @@ const Contribute = () => {
               setModalVisible(true);
             }}
           >
-            Edit
+            Chỉnh sửa
           </Button>
           <Button 
             type="link" 
@@ -333,7 +420,7 @@ const Contribute = () => {
             loading={deleteLoading[record.id]} 
             onClick={() => confirmDelete(record.id)}
           >
-            Delete
+            Xóa
           </Button>
           <Button 
             type="link" 
@@ -342,7 +429,7 @@ const Contribute = () => {
               fetchContributionRecords(record.id);
             }}
           >
-            View Records
+            Xem bản ghi
           </Button>
         </>
       )
@@ -351,33 +438,33 @@ const Contribute = () => {
 
   const pendingRecordsColumns = [
     {
-      title: 'User ID',
+      title: 'ID người dùng',
       dataIndex: 'userId',
       key: 'userId',
     },
     {
-      title: 'Contribution',
+      title: 'Khoản đóng góp',
       render: (_, record) => record.contribution.title,
     },
     {
-      title: 'Amount',
+      title: 'Giá trị',
       dataIndex: 'amount',
-      render: amount => `$${amount.toFixed(2)}`
+      render: amount => `${amount.toFixed(2)}VNĐ`
     },
     {
-      title: 'Date',
+      title: 'Ngày',
       dataIndex: 'contributedAt',
       render: date => moment(date).format(DATE_FORMAT)
     },
     {
-      title: 'Action',
+      title: 'Thao tác',
       render: (_, record) => (
         <Button 
           type="primary" 
           loading={approveLoading[record.id]} 
           onClick={() => handleApproveRecord(record.id)}
         >
-          Approve
+          Chấp thuận
         </Button>
       )
     }
@@ -391,29 +478,29 @@ const Contribute = () => {
       sorter: true
     },
     {
-      title: 'User ID',
+      title: 'ID người dùng',
       dataIndex: 'userId',
       key: 'userId',
       sorter: true
     },
     {
-      title: 'Contribution ID',
+      title: 'ID khoản đóng góp',
       key: 'contributionId',
       render: (_, record) => record.contribution?.id || 'N/A',
       sorter: true
     },
     {
-      title: 'Amount',
+      title: 'Giá trị',
       dataIndex: 'amount',
-      render: amount => `$${amount?.toFixed(2) || '0.00'}`
+      render: amount => `${amount?.toFixed(2) || '0'}VNĐ`
     },
     {
-      title: 'Contributed At',
+      title: 'Đóng góp lúc',
       dataIndex: 'contributedAt',
       render: date => date ? moment(date).format(DATE_FORMAT) : 'N/A'
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'approved',
       render: approved => (
         <Tag color={approved ? 'green' : 'orange'}>
@@ -422,7 +509,7 @@ const Contribute = () => {
       )
     },
     {
-      title: 'Actions',
+      title: 'Thao tác',
       render: (_, record) => (
         !record.approved && (
           <Button 
@@ -431,78 +518,13 @@ const Contribute = () => {
             loading={approveLoading[record.id]} 
             onClick={() => handleApproveRecord(record.id)}
           >
-            Approve
+            Chấp thuận
           </Button>
         )
       )
     }
   ];
 
-  const handleSearchRecords = useCallback(async (params = {}) => {
-    try {
-      setSearchLoading(true);
-      const token = localStorage.getItem("authToken");
-      const queryParams = new URLSearchParams({
-        page: params.page || searchPagination.current - 1,
-        size: params.size || searchPagination.pageSize,
-        sort: params.sort || 'id,desc'
-      });
-
-      const searchData = {
-        id: searchCriteria.id,
-        userId: searchCriteria.userId,
-        contributionId: searchCriteria.contributionId,
-        amount: searchCriteria.amount,
-        approved: searchCriteria.approved,
-        startDate: searchCriteria.startDate,
-        endDate: searchCriteria.endDate
-      };
-
-      const response = await fetch(
-        `${API_BASE_URL}/search/contributionRecords?${queryParams}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(searchData)
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Search error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setSearchResults(data.content || []);
-      setSearchPagination({
-        current: (params.page || 0) + 1,
-        pageSize: params.size || 10,
-        total: data.totalElements || 0
-      });
-    } catch (error) {
-      message.error(`Error searching records: ${error.message}`);
-    } finally {
-      setSearchLoading(false);
-    }
-  }, [searchCriteria, searchPagination.current, searchPagination.pageSize]);
-
-  const handleSearchFormFinish = (values) => {
-    const formattedValues = {
-      id: values.id || null,
-      userId: values.userId || null,
-      contributionId: values.contributionId || null,
-      amount: values.amount || null,
-      approved: values.approved,
-      startDate: values.dateRange?.[0]?.format('YYYY-MM-DD') || null,
-      endDate: values.dateRange?.[1]?.format('YYYY-MM-DD') || null
-    };
-    
-    setSearchCriteria(formattedValues);
-    handleSearchRecords();
-    setIsSearchModalVisible(false);
-  };
 
   const resetSearchForm = () => {
     searchForm.resetFields();
@@ -510,32 +532,61 @@ const Contribute = () => {
       id: null,
       userId: null,
       contributionId: null,
-      amount: null,
-      startDate: null,
-      endDate: null,
+      minAmount: null,
+      maxAmount: null,
+      contributedAt: null,
       approved: null
     });
     handleSearchRecords();
   };
 
+  const validateContributedAtDate = (_, value) => {
+    if (!value) return Promise.resolve();
+    
+    // Validate date is not in the future
+    if (moment(value).isAfter(moment())) {
+      return Promise.reject('Khoản đóng góp không thể đến từ tương lai');
+    }
+    
+    return Promise.resolve();
+  };
+
+  const validateAmountRange = (_, value) => {
+    if (!value) return Promise.resolve();
+    
+    // Ensure value is a valid number
+    if (isNaN(Number(value)) || Number(value) < 0) {
+      return Promise.reject('Giá trị phải dương');
+    }
+    
+    const minAmount = searchForm.getFieldValue('minAmount');
+    const maxAmount = searchForm.getFieldValue('maxAmount');
+    
+    if (minAmount && maxAmount && Number(minAmount) > Number(maxAmount)) {
+      return Promise.reject('Giá trị nhỏ nhất không được vượt qua giá trị lớn nhất');
+    }
+    
+    return Promise.resolve();
+  };
+
   const SearchModal = () => (
     <Modal
-      title="Advanced Search"
+      title="Tìm kiếm nâng cao"
       visible={isSearchModalVisible}
       onCancel={() => setIsSearchModalVisible(false)}
       footer={[
         <Button key="reset" onClick={resetSearchForm}>
-          Reset
+          Làm mới
         </Button>,
         <Button key="cancel" onClick={() => setIsSearchModalVisible(false)}>
-          Cancel
+          Hủy
         </Button>,
         <Button
           key="search"
           type="primary"
           onClick={() => searchForm.submit()}
         >
-          Search
+          Tìm 
         </Button>
       ]}
       width={800}
@@ -548,47 +599,72 @@ const Contribute = () => {
           id: searchCriteria.id,
           userId: searchCriteria.userId,
           contributionId: searchCriteria.contributionId,
-          amount: searchCriteria.amount,
-          approved: searchCriteria.approved,
-          dateRange: searchCriteria.startDate && searchCriteria.endDate ? 
-            [moment(searchCriteria.startDate), moment(searchCriteria.endDate)] : undefined
+          minAmount: searchCriteria.minAmount,
+          maxAmount: searchCriteria.maxAmount,
+          contributedAt: searchCriteria.contributedAt,
+          approved: searchCriteria.approved
         }}
       >
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="Record ID" name="id">
+            <Form.Item label="ID bản ghi" name="id">
               <Input type="number" />
             </Form.Item>
-            <Form.Item label="User ID" name="userId">
+            <Form.Item label="ID người dùng" name="userId">
               <Input type="number" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Contribution ID" name="contributionId">
+            <Form.Item label="ID khoản đóng góp" name="contributionId">
               <Input type="number" />
             </Form.Item>
-            <Form.Item label="Amount" name="amount">
-              <Input type="number" />
+            <Form.Item label="Trạng thái chấp thuận" name="approved">
+              <Select allowClear>
+                <Option value="true">Chấp thuận</Option>
+                <Option value="false">Chờ</Option>
+              </Select>
             </Form.Item>
           </Col>
         </Row>
         
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="Approval Status" name="approved">
-              <Select allowClear>
-                <Option value="true">Approved</Option>
-                <Option value="false">Pending</Option>
-              </Select>
+            <Form.Item
+              label="Giá trị nhỏ nhất (VNĐ)"
+              name="minAmount"
+              rules={[
+                { validator: validateAmountRange }
+              ]}
+            >
+              <Input type="number" min="0" placeholder="Gí trị nhỏ nhất" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Contribution Date" name="dateRange">
-              <RangePicker 
-                format={DATE_FORMAT} 
-                style={{ width: '100%' }}
-                size="small"
-                fullscreen={false}
+            <Form.Item
+              label="Giá trị lớn nhất (VNĐ)"
+              name="maxAmount"
+              dependencies={['minAmount']}
+              rules={[
+                { validator: validateAmountRange }
+              ]}
+            >
+              <Input type="number" min="0" placeholder="Giá trị lớn nhất" />
+            </Form.Item>
+          </Col>
+        </Row>
+        
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              label="Ngày đóng góp"
+              name="contributedAt"
+              rules={[
+                { validator: validateContributedAtDate }
+              ]}
+            >
+              <Input 
+                type="date"
+                max={moment().format('YYYY-MM-DD')}
               />
             </Form.Item>
           </Col>
@@ -633,30 +709,30 @@ const Contribute = () => {
   // Function to get today's date in YYYY-MM-DD format
  
   useEffect(() => {
-  // Listen for changes to startDate and update endDate constraint
-  form.getFieldValue('startDate') && form.validateFields(['endDate']);
-}, [form.getFieldValue('startDate')]);
+    // Listen for changes to startDate and update endDate constraint
+    form.getFieldValue('startDate') && form.validateFields(['endDate']);
+  }, [form.getFieldValue('startDate')]);
 
-const getTodayDateString = () => {
-  return moment().format(DATE_FORMAT);
-};
+  const getTodayDateString = () => {
+    return moment().format(DATE_FORMAT);
+  };
 
   return (
     <div className="p-4">
       <SearchModal />
       <div className="mb-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Contribution Management</h1>
+        <h1 className="text-2xl font-bold">Đóng góp</h1>
         <Button type="primary" onClick={() => {
           setSelectedContribution(null);
           form.resetFields();
           setModalVisible(true);
         }}>
-          Create New Contribution
+          Tạo mới khoản đóng góp
         </Button>
       </div>
 
       <Tabs defaultActiveKey="1">
-        <TabPane tab="Contributions" key="1">
+        <TabPane tab="Các khoản đóng góp" key="1">
           <Spin spinning={loading}>
             <Table
               columns={contributionColumns}
@@ -666,7 +742,7 @@ const getTodayDateString = () => {
             />
           </Spin>
         </TabPane>
-        <TabPane tab="Pending Records" key="2">
+        <TabPane tab="Bản ghi chờ chấp thuận" key="2">
           <Spin spinning={loading}>
             <Table
               columns={pendingRecordsColumns}
@@ -681,7 +757,7 @@ const getTodayDateString = () => {
           tab={
             <span className="flex items-center">
               <SearchOutlined className="mr-1" />
-              Search Records
+              Tìm bản ghi
             </span>
           } 
           key="4"
@@ -694,7 +770,7 @@ const getTodayDateString = () => {
                 icon={<SearchOutlined />}
                 onClick={() => setIsSearchModalVisible(true)}
               >
-                Advanced Search
+                Tìm kiếm nâng cao
               </Button>
             }
           >
@@ -706,7 +782,7 @@ const getTodayDateString = () => {
               pagination={{
                 ...searchPagination,
                 showSizeChanger: true,
-                showTotal: total => `Total ${total} items`,
+                showTotal: total => `Tổng ${total} mục`,
                 pageSizeOptions: ['10', '20', '50']
               }}
               onChange={handleSearchTableChange}
@@ -716,7 +792,7 @@ const getTodayDateString = () => {
           </Card>
         </TabPane>
         
-        <TabPane tab="Contribution Records" key="3">
+        <TabPane tab="Bản ghi các khoản đóng góp" key="3">
           <Spin spinning={recordsLoading}>
             {selectedContributionId && (
               <>
@@ -728,10 +804,10 @@ const getTodayDateString = () => {
                       setContributionRecords([]);
                     }}
                   >
-                    ← Back to all contributions
+                    ← Quy lại trang các khoản đóng góp
                   </Button>
                   <Title level={4} className="mt-2">
-                    Records for Contribution #{selectedContributionId}
+                    Bản ghi cho khoản đóng góp #{selectedContributionId}
                   </Title>
                 </div>
                 <Table
@@ -741,7 +817,7 @@ const getTodayDateString = () => {
                   pagination={{
                     ...pagination,
                     showSizeChanger: true,
-                    showTotal: total => `Total ${total} items`,
+                    showTotal: total => `Tổng số ${total} mục`,
                     pageSizeOptions: ['10', '20', '50']
                   }}
                   onChange={handleTableChange}
@@ -751,7 +827,7 @@ const getTodayDateString = () => {
             )}
             {!selectedContributionId && (
               <div className="text-gray-500">
-                Select a contribution from the list to view its records
+                Chọn 1 khoản đóng góp trong danh sách,nhấn "Xem bản ghi "rồi quay lại đây để xem các bản ghi của khoản đóng góp
               </div>
             )}
           </Spin>
@@ -759,7 +835,7 @@ const getTodayDateString = () => {
       </Tabs>
 
       <Modal
-        title={`${selectedContribution ? 'Edit' : 'Create'} Contribution`}
+        title={`${selectedContribution ? 'Chỉnh sửa' : 'Tạo'} Khoản đóng góp`}
         visible={modalVisible}
         onCancel={() => {
           setModalVisible(false);
@@ -776,100 +852,98 @@ const getTodayDateString = () => {
         >
           <Form.Item
             name="title"
-            label="Title"
-            rules={[{ required: true, message: 'Please input title!' }]}
+            label="Tiêu đề"
+            rules={[{ required: true, message: 'Điền tiêu đề!' }]}
           >
             <Input />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please input description!' }]}
+            label="Mô tả"
+            rules={[{ required: true, message: 'Điền mô tả!' }]}
           >
             <Input.TextArea rows={4} />
           </Form.Item>
 
           <Row gutter={16}>
-  <Col span={12}>
-    <Form.Item
-      name="startDate"
-      label="Start Date"
-      rules={[{ 
-        required: true, 
-        message: 'Please select start date!'
-      }, {
-        validator: (_, value) => {
-          if (!value) return Promise.resolve();
-          const startDate = form.getFieldValue('startDate');
-          
-          if (!startDate) {
-            return Promise.reject('Please select start date first!');
-          }
-          
-          const start = moment(startDate).startOf('day');
-          const end = moment(value).startOf('day');
-          
-          if (end.isBefore(start)) {
-            return Promise.reject('End date must be after start date!');
-          }
-          return Promise.resolve();
-        }
-      }]}
-    >
-      <Input 
-        type="date"
-        className="ant-input"
-        min={form.getFieldValue('startDate') || getTodayDateString()}
-        
-      />
-    </Form.Item>
-  </Col>
-  <Col span={12}>
-    <Form.Item
-      name="endDate"
-      label="End Date"
-      dependencies={['startDate']}
-      rules={[{ 
-        required: true, 
-        message: 'Please select end date!'
-      }, {
-        validator: (_, value) => {
-          if (!value) return Promise.resolve();
-          const startDate = form.getFieldValue('startDate');
-          
-          if (!startDate) {
-            return Promise.reject('Please select start date first!');
-          }
-          
-          const start = moment(startDate).startOf('day');
-          const end = moment(value).startOf('day');
-          
-          if (end.isBefore(start)) {
-            return Promise.reject('End date must be after start date!');
-          }
-          return Promise.resolve();
-        }
-      }]}
-    >
-      <Input 
-        type="date"
-        className="ant-input"
-        min={form.getFieldValue('startDate') || getTodayDateString()}
-        
-      />
-    </Form.Item>
-  </Col>
-</Row>
+            <Col span={12}>
+              <Form.Item
+                name="startDate"
+                label="Ngày bắt đầu"
+                rules={[{ 
+                  required: true, 
+                  message: 'Chọn ngày bắt đầu!'
+                }, {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve();
+                    const startDate = form.getFieldValue('startDate');
+                    
+                    if (!startDate) {
+                      return Promise.reject('Chọn ngày bắt đầu trước!');
+                    }
+                    
+                    const start = moment(startDate).startOf('day');
+                    const end = moment(value).startOf('day');
+                    
+                    if (end.isBefore(start)) {
+                      return Promise.reject('Ngày kết thúc phải muộn hơn ngày bắt đầu!');
+                    }
+                    return Promise.resolve();
+                  }
+                }]}
+              >
+                <Input 
+                  type="date"
+                  className="ant-input"
+                  min={form.getFieldValue('startDate') || getTodayDateString()}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="endDate"
+                label="Ngày kết thúc"
+                dependencies={['startDate']}
+                rules={[{ 
+                  required: true, 
+                  message: 'Chọn ngày kết thúc!'
+                }, {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve();
+                    const startDate = form.getFieldValue('startDate');
+                    
+                    if (!startDate) {
+                      return Promise.reject('Chọn ngày bắt đầu!');
+                    }
+                    
+                    const start = moment(startDate).startOf('day');
+                    const end = moment(value).startOf('day');
+                    
+                    if (end.isBefore(start)) {
+                      return Promise.reject('Ngày kết thúc phải muộn hơn ngày bắt đầu!');
+                    }
+                    return Promise.resolve();
+                  }
+                }]}
+              >
+                <Input 
+                  type="date"
+                  className="ant-input"
+                  min={form.getFieldValue('startDate') || getTodayDateString()}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item
             name="active"
-            label="Status"
+            label="Trạng thái"
             valuePropName="checked"
           >
             <Select defaultValue={true}>
-              <Option value={true}>Active</Option>
-              <Option value={false}>Inactive</Option>
+              <Option value={true}>Hiện hành</Option>
+              <Option value={false}>Không hiện hành</Option>
             </Select>
           </Form.Item>
 
@@ -879,10 +953,10 @@ const getTodayDateString = () => {
                 setModalVisible(false);
                 form.resetFields();
               }}>
-                Cancel
+                Hủy
               </Button>
               <Button type="primary" htmlType="submit" loading={submitLoading}>
-                {selectedContribution ? 'Update' : 'Create'}
+                {selectedContribution ? 'Chỉnh sửa' : 'Tạo'}
               </Button>
             </div>
           </Form.Item>
