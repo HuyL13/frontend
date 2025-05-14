@@ -192,6 +192,7 @@ const handleSearchTableChange = (pagination, filters, sorter) => {
       }
       
       const contribData = await contribResponse.json();
+      console.log(contribData);
       setContributions(contribData);
 
       // Fetch pending records
@@ -390,7 +391,7 @@ const handleSearchTableChange = (pagination, filters, sorter) => {
     {
       title: 'Ngày',
       render: (_, record) => 
-        `${moment(record.startDate).format(DATE_FORMAT)} - 
+        `${moment(record.startDate).format(DATE_FORMAT)} đến 
         ${moment(record.endDate).format(DATE_FORMAT)}`
     },
     {
