@@ -53,7 +53,6 @@ const Contribute = () => {
   });
 
 
-  // Sửa hàm handleSearchRecords
 const handleSearchRecords = useCallback(async (params = {}, searchValues) => {
   try {
     setSearchLoading(true);
@@ -64,7 +63,7 @@ const handleSearchRecords = useCallback(async (params = {}, searchValues) => {
       sort: params.sort || 'id,desc'
     });
 
-    // Sử dụng searchValues từ tham số đầu vào
+    // Xử lý giá trị approved
     let approvedValue = null;
     if (searchValues?.approved === "true") {
       approvedValue = true;
@@ -72,17 +71,24 @@ const handleSearchRecords = useCallback(async (params = {}, searchValues) => {
       approvedValue = false;
     }
 
-    const contributedAt = searchValues?.contributedAt 
-      ? moment(searchValues.contributedAt).format(DATE_FORMAT) 
+    // Format lại ngày tháng
+    const fromDate = searchValues?.fromDate 
+      ? moment(searchValues.fromDate).format(DATE_FORMAT) 
+      : null;
+      
+    const toDate = searchValues?.toDate 
+      ? moment(searchValues.toDate).format(DATE_FORMAT) 
       : null;
 
+    // Tạo search data với fromDate/toDate mới
     const searchData = {
       id: searchValues?.id || null,
       userId: searchValues?.userId || null,
       contributionId: searchValues?.contributionId || null,
       minAmount: searchValues?.minAmount || null,
       maxAmount: searchValues?.maxAmount || null,
-      contributedAt: contributedAt,
+      fromDate: fromDate, // Thêm fromDate
+      toDate: toDate,     // Thêm toDate
       approved: approvedValue
     };
 
@@ -127,7 +133,8 @@ const handleSearchFormFinish = (values) => {
     contributionId: values.contributionId || null,
     minAmount: values.minAmount || null,
     maxAmount: values.maxAmount || null,
-    contributedAt: values.contributedAt || null,
+    fromDate: values.fromDate, 
+    toDate: values.toDate,
     approved: values.approved
   };
 
@@ -527,18 +534,19 @@ const handleSearchTableChange = (pagination, filters, sorter) => {
 
 
   const resetSearchForm = () => {
-    searchForm.resetFields();
-    setSearchCriteria({
-      id: null,
-      userId: null,
-      contributionId: null,
-      minAmount: null,
-      maxAmount: null,
-      contributedAt: null,
-      approved: null
-    });
-    handleSearchRecords();
-  };
+  searchForm.resetFields();
+  setSearchCriteria({
+    id: null,
+    userId: null,
+    contributionId: null,
+    minAmount: null,
+    maxAmount: null,
+    fromDate: null, // Reset cả fromDate/toDate
+    toDate: null,
+    approved: null
+  });
+  handleSearchRecords();
+};
 
   const validateContributedAtDate = (_, value) => {
     if (!value) return Promise.resolve();
@@ -636,7 +644,7 @@ const handleSearchTableChange = (pagination, filters, sorter) => {
                 { validator: validateAmountRange }
               ]}
             >
-              <Input type="number" min="0" placeholder="Gí trị nhỏ nhất" />
+              <Input type="number" min="0" placeholder="Giá trị nhỏ nhất" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -655,18 +663,45 @@ const handleSearchTableChange = (pagination, filters, sorter) => {
         
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              label="Ngày đóng góp"
-              name="contributedAt"
-              rules={[
-                { validator: validateContributedAtDate }
-              ]}
-            >
-              <Input 
-                type="date"
-                max={moment().format('YYYY-MM-DD')}
-              />
-            </Form.Item>
+            
+<Form.Item
+  label="Từ ngày"
+  name="fromDate"
+  rules={[
+    { 
+      validator: (_, value) => {
+        if (!value) return Promise.resolve();
+        const toDate = searchForm.getFieldValue('toDate');
+        if (toDate && moment(value).isAfter(moment(toDate))) {
+          return Promise.reject('From date cannot be after to date');
+        }
+        return Promise.resolve();
+      }
+    }
+  ]}
+>
+  <Input type="date" max={moment().format('YYYY-MM-DD')} />
+</Form.Item>
+
+<Form.Item
+  label="Đến ngày"
+  name="toDate"
+  dependencies={['fromDate']}
+  rules={[
+    { 
+      validator: (_, value) => {
+        if (!value) return Promise.resolve();
+        const fromDate = searchForm.getFieldValue('fromDate');
+        if (fromDate && moment(value).isBefore(moment(fromDate))) {
+          return Promise.reject('To date cannot be before from date');
+        }
+        return Promise.resolve();
+      }
+    }
+  ]}
+>
+  <Input type="date" max={moment().format('YYYY-MM-DD')} />
+</Form.Item>
           </Col>
         </Row>
       </Form>
