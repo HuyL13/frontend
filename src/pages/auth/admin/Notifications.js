@@ -367,14 +367,14 @@ const Notifications = () => {
             name="description"
             label="Mô tả"
             rules={[
-              { required: true, message: 'Hyax điền mô tả!' },
-              { max: 500, message: 'Mô tả không quá 500 kí tựtự!' }
+              { required: true, message: 'Hãy điền mô tả!' },
+              { max: 200, message: 'Mô tả không quá 200 kí tựtự!' }
             ]}
           >
             <Input.TextArea 
               rows={4} 
               showCount 
-              maxLength={500} 
+              maxLength={200} 
               placeholder="Điền thông tin thông báo..."
             />
           </Form.Item>
@@ -431,13 +431,13 @@ const Notifications = () => {
             label="Mô tả"
             rules={[
               { required: true, message: 'Hãy điền mô tả!' },
-              { max: 500, message: 'Mô tả không quá 500 kí tự!' }
+              { max: 200, message: 'Mô tả không quá 200 kí tự!' }
             ]}
           >
             <Input.TextArea 
               rows={4} 
               showCount 
-              maxLength={500} 
+              maxLength={200} 
               placeholder="Điền các thông tin cho thông báo..."
             />
           </Form.Item>
