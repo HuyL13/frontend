@@ -218,7 +218,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                     activeStyle={{ backgroundColor: '#f8f9fa' }}
                   >
                     <i className="ik ik-user" style={{ width: '20px' }}></i>
-                    <span>Profile</span>
+                    <span>Thông tin cá nhân</span>
                   </NavLink>
                   
                   <div style={{ 
@@ -237,7 +237,7 @@ const NavbarAdmin = ({ username, handleLogout }) => {
                     }}
                   >
                     <i className="ik ik-power" style={{ width: '20px' }}></i>
-                    <span>Logout</span>
+                    <span>Đăng xuất</span>
                   </button>
                 </div>
               )}
