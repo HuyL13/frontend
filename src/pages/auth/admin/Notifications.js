@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { List, Button, Modal, Form, Input, Select, message, Spin, Table, Tag } from 'antd';
 
 const { Option } = Select;
-const API_BASE_URL = 'https://backend-13-6qob.onrender.com/demo';
+const API_BASE_URL = 'https://backend-6w7s.onrender.com/demo';
 
 const Notifications = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -29,7 +29,7 @@ const Notifications = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/admin/announcements`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/admin/announcements`, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +57,7 @@ const Notifications = () => {
     setLoadingUsers(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("https://backend-13-6qob.onrender.com/demo/users/admin", {
+      const response = await fetch("https://backend-6w7s.onrender.com/demo/users/admin", {
         method: "GET",
         headers: { 
           "Content-Type": "application/json",

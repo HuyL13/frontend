@@ -53,7 +53,58 @@ const NavbarResident = ({ handleLogout }) => {
       opacity: searchOpen ? 1 : 0,
       padding: searchOpen ? '8px 12px' : '0',
       overflow: 'hidden',
-    }
+    },
+    overlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.5)', // Dimming effect
+      zIndex: 99, // Below sidebar but above content
+    },
+    navItem: {
+      margin: '5px 0',
+      padding: '0', // Remove default padding
+    },
+    navLink: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '12px 20px',
+      color: '#fff',
+      textDecoration: 'none',
+      transition: 'background 0.3s ease',
+    },
+    navLinkActive: {
+      background: '#3f51b5', // Highlight color for active item
+      color: '#fff',
+    },
+    navLinkExpanded: {
+      fontSize: '16px', // Keep larger font size
+      // Removed fontWeight: 'bold'
+    },
+    navLinkCollapsed: {
+      justifyContent: 'center', // Center icon in collapsed mode
+      padding: '12px',
+    },
+    icon: {
+      fontSize: '20px', // Larger icon in collapsed mode
+    },
+    text: {
+      marginLeft: '10px',
+    },
+    navLabel: {
+      padding: '15px 20px',
+      fontSize: '18px',
+      fontWeight: 'bold', // Bold for "Menu Cư Dân"
+      color: '#b0bec5', // Slightly lighter color for label
+    },
+    headerBrand: {
+      fontSize: '20px',
+      fontWeight: 'bold', // Bold for "BlueMoon"
+      color: '#fff',
+      textDecoration: 'none',
+    },
   };
 
   useEffect(() => {
@@ -122,7 +173,7 @@ const NavbarResident = ({ handleLogout }) => {
           }}
         >
           <div className="sidebar-header">
-            <a className="header-brand" href="#!">
+            <a className="header-brand" href="#!" style={styles.headerBrand}>
               <span className="text" style={!sidebarOpen ? { display: 'none' } : { }}>BlueMoon</span>
             </a>
             <button
@@ -144,53 +195,174 @@ const NavbarResident = ({ handleLogout }) => {
 
           <div className="sidebar-content ps ps--active-y">
             <nav id="main-menu-navigation" className="navigation-main">
-              <div className="nav-lavel" style={!sidebarOpen ? { display: 'none' } : { }}>Menu Cư Dân</div>
+              <div
+                className="nav-lavel"
+                style={{
+                  ...styles.navLabel,
+                  ...(!sidebarOpen ? { display: 'none' } : {})
+                }}
+              >
+                Menu Cư Dân
+              </div>
 
-              <div className="nav-item">
-                <NavLink to="/resident" className="nav-link">
-                  <FaHome style={{ marginRight: '10px' }} />
-                  <span style={!sidebarOpen ? { display: 'none' } : { }}>Trang chủ</span>
+              <div className="nav-item" style={styles.navItem}>
+                <NavLink
+                  to="/resident"
+                  end // Ensure exact match for "/resident"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  style={({ isActive }) => ({
+                    ...styles.navLink,
+                    ...(isActive ? styles.navLinkActive : {}),
+                    ...(sidebarOpen ? styles.navLinkExpanded : styles.navLinkCollapsed),
+                  })}
+                  title={sidebarOpen ? '' : 'Trang chủ'}
+                >
+                  <FaHome style={styles.icon} />
+                  <span
+                    style={{
+                      ...styles.text,
+                      ...(!sidebarOpen ? { display: 'none' } : {})
+                    }}
+                  >
+                    Trang chủ
+                  </span>
                 </NavLink>
               </div>
 
-              <div className="nav-item">
-                <NavLink to="/account" className="nav-link">
-                  <FaUser style={{ marginRight: '10px' }} />
-                  <span style={!sidebarOpen ? { display: 'none' } : { }}>Tài khoản</span>
+              <div className="nav-item" style={styles.navItem}>
+                <NavLink
+                  to="/account"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  style={({ isActive }) => ({
+                    ...styles.navLink,
+                    ...(isActive ? styles.navLinkActive : {}),
+                    ...(sidebarOpen ? styles.navLinkExpanded : styles.navLinkCollapsed),
+                  })}
+                  title={sidebarOpen ? '' : 'Tài khoản'}
+                >
+                  <FaUser style={styles.icon} />
+                  <span
+                    style={{
+                      ...styles.text,
+                      ...(!sidebarOpen ? { display: 'none' } : {})
+                    }}
+                  >
+                    Tài khoản
+                  </span>
                 </NavLink>
               </div>
 
-              <div className="nav-item">
-                <NavLink to="/resident/complain" className="nav-link">
-                  <FaFileAlt style={{ marginRight: '10px' }} />
-                  <span style={!sidebarOpen ? { display: 'none' } : { }}>Khiếu nại</span>
+              <div className="nav-item" style={styles.navItem}>
+                <NavLink
+                  to="/resident/complain"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  style={({ isActive }) => ({
+                    ...styles.navLink,
+                    ...(isActive ? styles.navLinkActive : {}),
+                    ...(sidebarOpen ? styles.navLinkExpanded : styles.navLinkCollapsed),
+                  })}
+                  title={sidebarOpen ? '' : 'Khiếu nại'}
+                >
+                  <FaFileAlt style={styles.icon} />
+                  <span
+                    style={{
+                      ...styles.text,
+                      ...(!sidebarOpen ? { display: 'none' } : {})
+                    }}
+                  >
+                    Khiếu nại
+                  </span>
                 </NavLink>
               </div>
 
-              <div className="nav-item">
-                <NavLink to="/resident/announcement" className="nav-link">
-                  <FaBell style={{ marginRight: '10px' }} />
-                  <span style={!sidebarOpen ? { display: 'none' } : { }}>Thông báo</span>
+              <div className="nav-item" style={styles.navItem}>
+                <NavLink
+                  to="/resident/announcement"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  style={({ isActive }) => ({
+                    ...styles.navLink,
+                    ...(isActive ? styles.navLinkActive : {}),
+                    ...(sidebarOpen ? styles.navLinkExpanded : styles.navLinkCollapsed),
+                  })}
+                  title={sidebarOpen ? '' : 'Thông báo'}
+                >
+                  <FaBell style={styles.icon} />
+                  <span
+                    style={{
+                      ...styles.text,
+                      ...(!sidebarOpen ? { display: 'none' } : {})
+                    }}
+                  >
+                    Thông báo
+                  </span>
                 </NavLink>
               </div>
 
-              <div className="nav-item">
-                <NavLink to="/resident/parking" className="nav-link">
-                  <FaCar style={{ marginRight: '10px' }} />
-                  <span style={!sidebarOpen ? { display: 'none' } : { }}>Gửi xe</span>
+              <div className="nav-item" style={styles.navItem}>
+                <NavLink
+                  to="/resident/parking"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  style={({ isActive }) => ({
+                    ...styles.navLink,
+                    ...(isActive ? styles.navLinkActive : {}),
+                    ...(sidebarOpen ? styles.navLinkExpanded : styles.navLinkCollapsed),
+                  })}
+                  title={sidebarOpen ? '' : 'Gửi xe'}
+                >
+                  <FaCar style={styles.icon} />
+                  <span
+                    style={{
+                      ...styles.text,
+                      ...(!sidebarOpen ? { display: 'none' } : {})
+                    }}
+                  >
+                    Gửi xe
+                  </span>
                 </NavLink>
               </div>
 
-              <div className="nav-item">
-                <NavLink to="/resident/contribution" className="nav-link">
-                  <FaHandHoldingHeart style={{ marginRight: '10px' }} />
-                  <span style={!sidebarOpen ? { display: 'none' } : { }}>Đóng góp</span>
+              <div className="nav-item" style={styles.navItem}>
+                <NavLink
+                  to="/resident/contribution"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  style={({ isActive }) => ({
+                    ...styles.navLink,
+                    ...(isActive ? styles.navLinkActive : {}),
+                    ...(sidebarOpen ? styles.navLinkExpanded : styles.navLinkCollapsed),
+                  })}
+                  title={sidebarOpen ? '' : 'Đóng góp'}
+                >
+                  <FaHandHoldingHeart style={styles.icon} />
+                  <span
+                    style={{
+                      ...styles.text,
+                      ...(!sidebarOpen ? { display: 'none' } : {})
+                    }}
+                  >
+                    Đóng góp
+                  </span>
                 </NavLink>
               </div>
-
             </nav>
           </div>
         </div>
+
+        {/* Overlay for dimming effect when sidebar is expanded and not on mobile */}
+        {sidebarOpen && !isMobile && (
+          <div style={styles.overlay} onClick={toggleSidebar}></div>
+        )}
       </div>
     </div>
   );

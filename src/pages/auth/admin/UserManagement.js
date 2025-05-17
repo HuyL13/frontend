@@ -163,7 +163,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     };
   
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/search/users?${queryParams}`,
+        `https://backend-6w7s.onrender.com/demo/search/users?${queryParams}`,
         {
           method: "POST",
           headers: {
@@ -256,9 +256,9 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     try {
       const token = localStorage.getItem("authToken");
       // Use different endpoint if filtering by residency status
-      let url = "https://backend-13-6qob.onrender.com/demo/users/admin";
+      let url = "https://backend-6w7s.onrender.com/demo/users/admin";
       if (selectedResidencyRef.current) {
-        url = `https://backend-13-6qob.onrender.com/demo/users/admin/user/${selectedResidencyRef.current}`;
+        url = `https://backend-6w7s.onrender.com/demo/users/admin/user/${selectedResidencyRef.current}`;
       }
       const response = await fetch(url, {
         method: "GET",
@@ -336,7 +336,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const createUser = async (values) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("https://backend-13-6qob.onrender.com/demo/users", {
+      const response = await fetch("https://backend-6w7s.onrender.com/demo/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -393,7 +393,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     try {
       console.log("xóa");
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/admin/${userId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/users/admin/${userId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -417,7 +417,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const fetchUserDetails = async (userId) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/admin/${userId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/users/admin/${userId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -442,7 +442,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const updateUser = async (userId, values) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/${userId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -504,7 +504,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/users/admin/${userId}/make-admin`,
+        `https://backend-6w7s.onrender.com/demo/users/admin/${userId}/make-admin`,
         {
           method: "POST",
           headers: {
@@ -539,7 +539,7 @@ const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     const fetchUserInfo = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('https://backend-13-6qob.onrender.com/demo/users/my-info', {
+        const response = await fetch('https://backend-6w7s.onrender.com/demo/users/my-info', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

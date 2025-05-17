@@ -85,7 +85,7 @@ const FeeManagement = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('https://backend-13-6qob.onrender.com/demo/admin/fees', {
+      const response = await fetch('https://backend-6w7s.onrender.com/demo/admin/fees', {
         mode: 'cors',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -189,7 +189,7 @@ const FeeManagement = () => {
         maxAmount: criteria.maxAmount ? Number(criteria.maxAmount) : null
       };
   
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/search/fees?${queryParams}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/search/fees?${queryParams}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -231,7 +231,7 @@ const FeeManagement = () => {
       const token = localStorage.getItem('authToken');
       
       // Create URL with query parameters
-      const apiUrl = new URL('https://backend-13-6qob.onrender.com/demo/admin/fees/add');
+      const apiUrl = new URL('https://backend-6w7s.onrender.com/demo/admin/fees/add');
       const params = {
         roomNumber: values.roomNumber,
         description: values.description,
@@ -285,7 +285,7 @@ const FeeManagement = () => {
       });
       
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/fees/update-status?${params}`,
+        `https://backend-6w7s.onrender.com/demo/admin/fees/update-status?${params}`,
         {
           mode: 'cors',
           method: 'PUT',
@@ -326,7 +326,7 @@ const FeeManagement = () => {
       };
       
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/fees/${selectedFee.id}`,
+        `https://backend-6w7s.onrender.com/demo/admin/fees/${selectedFee.id}`,
         {
           mode: 'cors',
           method: 'PUT',
@@ -364,7 +364,7 @@ const FeeManagement = () => {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/fees/${feeId}`,
+        `https://backend-6w7s.onrender.com/demo/admin/fees/${feeId}`,
         {
           mode: 'cors',
           method: 'DELETE',
@@ -400,7 +400,7 @@ const FeeManagement = () => {
       formData.append('feeType', values.feeType);
       formData.append('file', values.file.file);
 
-      const response = await fetch('https://backend-13-6qob.onrender.com/demo/admin/fees/upload', {
+      const response = await fetch('https://backend-6w7s.onrender.com/demo/admin/fees/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,

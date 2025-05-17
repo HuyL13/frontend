@@ -11,6 +11,7 @@ const Account = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
   const [verifiedPassword, setVerifiedPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(''); // New state for password error
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
 
@@ -19,7 +20,7 @@ const Account = () => {
       try {
         const token = localStorage.getItem('authToken');
         if (!token) throw new Error('Không tìm thấy token xác thực');
-        const response = await fetch('https://backend-13-6qob.onrender.com/demo/users/my-info', {
+        const response = await fetch('https://backend-6w7s.onrender.com/demo/users/my-info', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -57,7 +58,8 @@ const Account = () => {
         return;
       }
 
-      const response = await fetch('https://backend-13-6qob.onrender.com/demo/auth/login', {
+      setPasswordError(''); // Clear previous error
+      const response = await fetch('https://backend-6w7s.onrender.com/demo/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +72,13 @@ const Account = () => {
 
       const data = await response.json();
       if (!response.ok || data.code !== 0) {
-        throw new Error(data.message || 'Mật khẩu không đúng');
+        // Set error for incorrect password
+        if (data.message && data.message.toLowerCase().includes('invalid') || response.status === 401) {
+          setPasswordError('Mật khẩu bạn nhập không đúng');
+        } else {
+          message.error(data.message || 'Lỗi khi xác thực mật khẩu');
+        }
+        return;
       }
 
       setVerifiedPassword(values.password);
@@ -79,7 +87,7 @@ const Account = () => {
       form.setFieldsValue({ password: values.password });
     } catch (err) {
       console.error('Password verification error:', err);
-      message.error(err.message || 'Lỗi khi xác thực mật khẩu');
+      message.error('Lỗi khi xác thực mật khẩu: ' + err.message);
     }
   };
 
@@ -101,7 +109,7 @@ const Account = () => {
         password: values.password || null,
       };
 
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/${userId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -157,39 +165,57 @@ const Account = () => {
     <div className="container mt-5">
       <div className="card shadow-sm">
         <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <h4 className="mb-0">Thông tin tài khoản</h4>
+          <h4 className="mb-0" style={{ fontSize: '24px' }}>Thông tin tài khoản</h4>
           <Button type="primary" onClick={() => setIsPasswordModalVisible(true)}>
             Sửa thông tin
           </Button>
         </div>
         <div className="card-body">
           <div className="row mb-3">
-            <div className="col-md-4 font-weight-bold text-muted">Họ và tên</div>
-            <div className="col-md-8">
+            <div className="col-md-4 font-weight-bold text-muted" style={{ fontSize: '18px' }}>
+              Họ và tên
+            </div>
+            <div className="col-md-8" style={{ fontSize: '18px' }}>
               {getValueOrDash(userInfo.lastName)} {getValueOrDash(userInfo.firstName)}
             </div>
           </div>
           <div className="row mb-3">
-            <div className="col-md-4 font-weight-bold text-muted">Email</div>
-            <div className="col-md-8">{getValueOrDash(userInfo.email)}</div>
+            <div className="col-md-4 font-weight-bold text-muted" style={{ fontSize: '18px' }}>
+              Email
+            </div>
+            <div className="col-md-8" style={{ fontSize: '18px' }}>
+              {getValueOrDash(userInfo.email)}
+            </div>
           </div>
           <div className="row mb-3">
-            <div className="col-md-4 font-weight-bold text-muted">Ngày sinh</div>
-            <div className="col-md-8">
+            <div className="col-md-4 font-weight-bold text-muted" style={{ fontSize: '18px' }}>
+              Ngày sinh
+            </div>
+            <div className="col-md-8" style={{ fontSize: '18px' }}>
               {userInfo.dob ? new Date(userInfo.dob).toLocaleDateString('vi-VN') : '-'}
             </div>
           </div>
           <div className="row mb-3">
-            <div className="col-md-4 font-weight-bold text-muted">Tên đăng nhập</div>
-            <div className="col-md-8">{getValueOrDash(userInfo.username)}</div>
+            <div className="col-md-4 font-weight-bold text-muted" style={{ fontSize: '18px' }}>
+              Tên đăng nhập
+            </div>
+            <div className="col-md-8" style={{ fontSize: '18px' }}>
+              {getValueOrDash(userInfo.username)}
+            </div>
           </div>
           <div className="row mb-3">
-            <div className="col-md-4 font-weight-bold text-muted">Trạng thái cư trú</div>
-            <div className="col-md-8">{getValueOrDash(userInfo.residencyStatus)}</div>
+            <div className="col-md-4 font-weight-bold text-muted" style={{ fontSize: '18px' }}>
+              Trạng thái cư trú
+            </div>
+            <div className="col-md-8" style={{ fontSize: '18px' }}>
+              {getValueOrDash(userInfo.residencyStatus)}
+            </div>
           </div>
           <div className="row">
-            <div className="col-md-4 font-weight-bold text-muted">Vai trò</div>
-            <div className="col-md-8">
+            <div className="col-md-4 font-weight-bold text-muted" style={{ fontSize: '18px' }}>
+              Vai trò
+            </div>
+            <div className="col-md-8" style={{ fontSize: '18px' }}>
               {userInfo.roles?.length
                 ? userInfo.roles.map((role) => role.name).join(', ')
                 : '-'}
@@ -201,7 +227,10 @@ const Account = () => {
       <Modal
         title="Xác thực mật khẩu"
         open={isPasswordModalVisible}
-        onCancel={() => setIsPasswordModalVisible(false)}
+        onCancel={() => {
+          setIsPasswordModalVisible(false);
+          setPasswordError(''); // Clear error when closing modal
+        }}
         footer={null}
         destroyOnClose
         width={400}
@@ -211,6 +240,8 @@ const Account = () => {
           <Form.Item
             name="password"
             label="Mật khẩu hiện tại"
+            validateStatus={passwordError ? 'error' : ''}
+            help={passwordError || ''}
             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
           >
             <Input.Password />
@@ -220,7 +251,10 @@ const Account = () => {
               Xác nhận
             </Button>
             <Button
-              onClick={() => setIsPasswordModalVisible(false)}
+              onClick={() => {
+                setIsPasswordModalVisible(false);
+                setPasswordError(''); // Clear error when canceling
+              }}
               className="ms-2"
             >
               Hủy

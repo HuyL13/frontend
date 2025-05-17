@@ -31,7 +31,7 @@ const Announcement = () => {
         const token = localStorage.getItem('authToken');
         if (!token) throw new Error('Không tìm thấy token xác thực');
 
-        const response = await fetch('https://backend-13-6qob.onrender.com/demo/announcements', {
+        const response = await fetch('https://backend-6w7s.onrender.com/demo/announcements', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

@@ -53,7 +53,7 @@ const Vehicle = () => {
     try {
       const token = localStorage.getItem("authToken");
       setLotLoading(true);
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/api/vehicles`, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const Vehicle = () => {
     try {
       const token = localStorage.getItem("authToken");
       setLoading(true);
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/admin/api/parking-lots/${lotId}/vehicles`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/admin/api/parking-lots/${lotId}/vehicles`, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",
@@ -107,7 +107,7 @@ const Vehicle = () => {
 
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/api/parking-lots/unassign-vehicle/${vehicleId}`,
+        `https://backend-6w7s.onrender.com/demo/admin/api/parking-lots/unassign-vehicle/${vehicleId}`,
         {
           method: 'DELETE',
           headers: {
@@ -168,7 +168,7 @@ const Vehicle = () => {
     try {
       setCreateLoading(true);
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles/room/${values.roomId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/api/vehicles/room/${values.roomId}`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -203,7 +203,7 @@ const Vehicle = () => {
       setAssignLoading(true);
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/api/vehicles/${values.lotId}/assign-vehicle/${values.vehicleId}`, {
+        `https://backend-6w7s.onrender.com/demo/api/vehicles/${values.lotId}/assign-vehicle/${values.vehicleId}`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
@@ -259,7 +259,7 @@ const Vehicle = () => {
       // Step 1: Register vehicle
       console.log("🚗 Registering vehicle:", values);
   
-      const registerRes = await fetch(`https://backend-13-6qob.onrender.com/demo/api/vehicles/room/${values.roomId}`, {
+      const registerRes = await fetch(`https://backend-6w7s.onrender.com/demo/api/vehicles/room/${values.roomId}`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -288,7 +288,7 @@ const Vehicle = () => {
       console.log(`📦 Assigning vehicle ${vehicle.id} to lot ${selectedEmptyLot.id}`);
   
       const assignRes = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/api/vehicles/${selectedEmptyLot.id}/assign-vehicle/${vehicle.id}`, {
+        `https://backend-6w7s.onrender.com/demo/api/vehicles/${selectedEmptyLot.id}/assign-vehicle/${vehicle.id}`, {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",

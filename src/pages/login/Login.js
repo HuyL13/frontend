@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import "../../styles/Login.css";
 import chungCu from "./Chung_cu4.jpeg";
 
 const Login = () => {
@@ -39,7 +38,7 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("https://backend-13-6qob.onrender.com/demo/auth/login", {
+      const response = await fetch("https://backend-6w7s.onrender.com/demo/auth/login", {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify({
@@ -82,26 +81,24 @@ const Login = () => {
   return (
     <div className="row g-0 auth-wrapper login-wrapper">
       <div className="col-12 col-md-5 col-lg-6 h-100">
-  <div className="auth-background-holder"></div>
-  <div style={{ width: '108%', height: '100%', overflow: 'hidden' }}>
-  <div style={{ width: '108%', height: '100%', overflow: 'hidden' }}>
-  <img
-    src={chungCu}
-    style={{
-      width: 'calc(100% + 8vw)',
-      height: '100%',
-      objectFit: 'cover',
-      marginLeft: '-8vw',
-      zIndex: 999009,
-      display: 'block',
-    }}
-    alt="Chung cư"
-  />
-</div>
-</div>
-
-</div>
-
+        <div className="auth-background-holder"></div>
+        <div style={{ width: '108%', height: '100%', overflow: 'hidden' }}>
+          <div style={{ width: '108%', height: '100%', overflow: 'hidden' }}>
+            <img
+              src={chungCu}
+              style={{
+                width: 'calc(100% + 8vw)',
+                height: '100%',
+                objectFit: 'cover',
+                marginLeft: '-8vw',
+                zIndex: 999009,
+                display: 'block',
+              }}
+              alt="Chung cư"
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center">
         <div className="d-flex flex-column align-content-end">
@@ -128,11 +125,18 @@ const Login = () => {
                       setFormData({ ...formData, username: e.target.value })
                     }
                     disabled={loading}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
                 <div className="password mb-3">
-                  <div className="password-field">
+                  <div className="password-field" style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? "text" : "password"}
                       className="form-control"
@@ -142,11 +146,28 @@ const Login = () => {
                       placeholder="Mật khẩu"
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       disabled={loading}
+                      style={{
+                        width: '100%',
+                        height: '40px',
+                        padding: '8px 60px 8px 12px', // Adjusted padding for toggle button
+                        fontSize: '16px',
+                        boxSizing: 'border-box',
+                      }}
                     />
                     <span
                       className="toggle-password"
                       onClick={() => setShowPassword((prev) => !prev)}
                       tabIndex={-1}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        cursor: 'pointer',
+                        color: '#007bff',
+                        fontSize: '14px',
+                        userSelect: 'none',
+                      }}
                     >
                       {showPassword ? "Ẩn" : "Hiện"}
                     </span>
@@ -160,7 +181,7 @@ const Login = () => {
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
                           disabled={loading}
-                          style={{ position: "absolute", opacity: 0, cursor: "pointer", height: 0, width: 0 }}
+                          style={{ position: "absolute", opacity: "0", cursor: "pointer", height: "0", width: "0" }}
                         />
                         <span
                           style={{
@@ -198,7 +219,6 @@ const Login = () => {
 
                     <div className="col-6 text-end">
                       <div className="forgot-password">
-                        {/* Thay thế phần Quên mật khẩu bằng NavLink */}
                         <Link to="/forgot">Quên mật khẩu?</Link>
                       </div>
                     </div>
@@ -236,10 +256,6 @@ const Login = () => {
         </div>
       </div>
     </div>
-    
-
- 
-    
   );
 };
 

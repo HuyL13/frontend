@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "../../styles/Signup.css";
 import chungCu from "./Chung_cu4.jpeg";
 
 const Signup = () => {
@@ -12,7 +11,6 @@ const Signup = () => {
     lastName: "",
     dob: "",
     email: "",
-    
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -24,7 +22,7 @@ const Signup = () => {
     setError("");
 
     try {
-      const response = await fetch("https://backend-13-6qob.onrender.com/demo/users/create", {
+      const response = await fetch("https://backend-6w7s.onrender.com/demo/users/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +53,7 @@ const Signup = () => {
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover' // hoặc 'contain' nếu muốn toàn bộ ảnh hiển thị mà không bị cắt
+              objectFit: 'cover',
             }}
             alt="Chung cư"
           />
@@ -78,11 +76,18 @@ const Signup = () => {
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     disabled={loading}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
                 <div className="mb-3">
-                  <div className="password-field">
+                  <div className="password-field" style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? "text" : "password"}
                       className="form-control"
@@ -90,11 +95,28 @@ const Signup = () => {
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       disabled={loading}
+                      style={{
+                        width: '100%',
+                        height: '40px',
+                        padding: '8px 60px 8px 12px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box',
+                      }}
                     />
                     <span
                       className="toggle-password"
                       onClick={() => setShowPassword((prev) => !prev)}
                       tabIndex={-1}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        cursor: 'pointer',
+                        color: '#007bff',
+                        fontSize: '14px',
+                        userSelect: 'none',
+                      }}
                     >
                       {showPassword ? "Ẩn" : "Hiện"}
                     </span>
@@ -109,6 +131,13 @@ const Signup = () => {
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     disabled={loading}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 
@@ -120,10 +149,15 @@ const Signup = () => {
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     disabled={loading}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
-
-                
 
                 <div className="mb-3">
                   <input
@@ -133,8 +167,16 @@ const Signup = () => {
                     value={formData.dob}
                     onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                     disabled={loading}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
+
                 <div className="mb-3">
                   <input
                     type="email"
@@ -143,6 +185,13 @@ const Signup = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     disabled={loading}
+                    style={{
+                      width: '100%',
+                      height: '40px',
+                      padding: '8px 12px',
+                      fontSize: '16px',
+                      boxSizing: 'border-box',
+                    }}
                   />
                 </div>
 

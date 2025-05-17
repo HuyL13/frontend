@@ -13,7 +13,7 @@ DatePicker.defaultProps = {
 const { TabPane } = Tabs;
 const { Title } = Typography;
 const { Option } = Select;
-const API_BASE_URL = 'https://backend-13-6qob.onrender.com/demo';
+const API_BASE_URL = 'https://backend-6w7s.onrender.com/demo';
 
 // Custom date format
 const DATE_FORMAT = 'YYYY-MM-DD';

@@ -7,7 +7,7 @@ import '../../../plugins/icon-kit/dist/css/iconkit.min.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
-const API_BASE_URL = 'https://backend-13-6qob.onrender.com/demo';
+const API_BASE_URL = 'https://backend-6w7s.onrender.com/demo';
 
 const Complain = () => {
   const [complaints, setComplaints] = useState([]);

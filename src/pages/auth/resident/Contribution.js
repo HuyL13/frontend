@@ -17,7 +17,7 @@ const Contribution = () => {
   const fetchActiveContributions = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("https://backend-13-6qob.onrender.com/demo/contribute/active", {
+      const response = await fetch("https://backend-6w7s.onrender.com/demo/contribute/active", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -35,7 +35,7 @@ const Contribution = () => {
   const fetchMyRecords = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("https://backend-13-6qob.onrender.com/demo/contribute/my-records", {
+      const response = await fetch("https://backend-6w7s.onrender.com/demo/contribute/my-records", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +59,7 @@ const Contribution = () => {
 
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/contribute/${id}/contribute?amount=${amount}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/contribute/${id}/contribute?amount=${amount}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

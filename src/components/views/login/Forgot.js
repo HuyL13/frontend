@@ -37,7 +37,7 @@ const Forgot = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/auth/request-otp?email=${encodeURIComponent(email)}`,
+        `https://backend-6w7s.onrender.com/demo/auth/request-otp?email=${encodeURIComponent(email)}`,
         { method: "POST" }
       );
 

@@ -35,7 +35,7 @@ const Resident = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("Auth token not found!");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/unpaid`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/users/unpaid`, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -58,7 +58,7 @@ const Resident = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("Auth token not found!");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/users/room`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/users/room`, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -87,7 +87,7 @@ const Resident = () => {
       const token = localStorage.getItem("authToken");
       if (!token) throw new Error("Auth token not found!");
 
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/api/bills/generate?feeId=${feeId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/api/bills/generate?feeId=${feeId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

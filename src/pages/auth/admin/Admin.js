@@ -124,7 +124,7 @@ const Admin = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room?page=${pagination.current - 1}&size=${pagination.pageSize}`,
+        `https://backend-6w7s.onrender.com/demo/admin/room?page=${pagination.current - 1}&size=${pagination.pageSize}`,
         {
           method: "GET",
           headers: {
@@ -188,7 +188,7 @@ const Admin = () => {
       });
 
       // Create URL with pagination
-      const url = new URL(`https://backend-13-6qob.onrender.com/demo/search/rooms`);
+      const url = new URL(`https://backend-6w7s.onrender.com/demo/search/rooms`);
       url.searchParams.append('page', pagination.current - 1);
       url.searchParams.append('size', pagination.pageSize);
       
@@ -233,7 +233,7 @@ const Admin = () => {
     try {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`https://backend-13-6qob.onrender.com/demo/admin/room/${roomId}`, {
+      const response = await fetch(`https://backend-6w7s.onrender.com/demo/admin/room/${roomId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -262,7 +262,7 @@ const Admin = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/users?roomNumber=${roomNumber}`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/users?roomNumber=${roomNumber}`,
         {
           method: "GET",
           headers: {
@@ -306,7 +306,7 @@ const Admin = () => {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/${roomId}/residents`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/${roomId}/residents`,
         {
           method: "GET",
           headers: {
@@ -361,7 +361,7 @@ const Admin = () => {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/${selectedRoom.roomNumber}/users/${newUsername}`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/${selectedRoom.roomNumber}/users/${newUsername}`,
         {
           method: "POST",
           headers: {
@@ -412,7 +412,7 @@ const Admin = () => {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/${roomId}/users/${userId}`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/${roomId}/users/${userId}`,
         {
           method: "DELETE",
           headers: {
@@ -480,7 +480,7 @@ const Admin = () => {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/${selectedRoom.id}/residents`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/${selectedRoom.id}/residents`,
         {
           method: "POST",
           headers: {
@@ -554,7 +554,7 @@ const Admin = () => {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/${selectedRoom.id}/residents`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/${selectedRoom.id}/residents`,
         {
           method: "PUT",
           headers: {
@@ -605,7 +605,7 @@ const Admin = () => {
       setLoading((prev) => ({ ...prev, form: true }));
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/admin/room/${selectedRoom.id}/residents`,
+        `https://backend-6w7s.onrender.com/demo/admin/room/${selectedRoom.id}/residents`,
         {
           method: "DELETE",
           headers: {
@@ -695,7 +695,7 @@ const Admin = () => {
       });
   
       const response = await fetch(
-        `https://backend-13-6qob.onrender.com/demo/search/rooms?${queryParams}`,
+        `https://backend-6w7s.onrender.com/demo/search/rooms?${queryParams}`,
         {
           method: "POST",
           headers: {
