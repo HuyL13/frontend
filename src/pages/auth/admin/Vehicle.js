@@ -480,7 +480,7 @@ const Vehicle = () => {
                 {lot.occupied && vehicleInfo?.licensePlate?.length > 0 && (
                   <div>Biển số: {vehicleInfo.licensePlate.join(', ')}</div>
                 )}
-                {!lot.occupied && <div>Nhấn vào để đăng kí phwong tiện và đặt chỗ</div>}
+                {!lot.occupied && <div>Nhấn vào để đăng kí phương tiện và đặt chỗ</div>}
               </>
             }
             key={lot.id}
@@ -841,7 +841,7 @@ const Vehicle = () => {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={assignLoading}>
-              Đăng ksi phwong tiện
+              Đăng kí phwong tiện
             </Button>
           </Form.Item>
         </Form>
@@ -897,7 +897,7 @@ const Vehicle = () => {
           </Form.Item>
           <div className="p-2 mb-4 bg-blue-50 rounded border border-blue-200">
             <Text type="secondary">
-              Phương tiện này sẽ được đăng ksi và đặt chỗ tại lot có ID: {selectedEmptyLot?.id}
+              Phương tiện này sẽ được đăng kí và đặt chỗ tại lot có ID: {selectedEmptyLot?.id}
             </Text>
           </div>
           <Form.Item>

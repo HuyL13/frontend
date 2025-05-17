@@ -32,7 +32,14 @@ const Signup = () => {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Đăng ký thất bại");
+        console.log(data.message);
+        if(data.message == "Must be at least {min}"){
+          throw new Error("Phải đủ 18 tuổi để đăng kí tài khoản");
+        }
+        else{
+          throw new Error(data.message || "Đăng ký thất bại");
+        }
+        
       }
 
       navigate("/login");

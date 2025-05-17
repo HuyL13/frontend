@@ -1,39 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import Form from "../../../utilities/Forms";
+import { Form, Input, Button, Card, Typography, Row, Col, Alert, Spin } from "antd";
+import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
 import chungCu from "./Chung_cu4.jpeg";
+
+const { Title, Text } = Typography;
+
 const Forgot = () => {
-  const [email, setEmail] = useState("");
-  const [validate, setValidate] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  // Hàm validation form
-  const validateForgotPassword = () => {
-    const validator = Form.validator({
-      email: {
-        value: email,
-        isRequired: true,
-        isEmail: true,
-      },
-    });
-
-    if (validator) {
-      setValidate({ validate: validator.errors });
-      return false;
-    }
-    return true;
-  };
+  const [form] = Form.useForm();
 
   // Hàm xử lý gửi OTP
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
+  const handleSendOtp = async (values) => {
+    const { email } = values;
     setError("");
     
-    if (!validateForgotPassword()) return;
-
     try {
       setLoading(true);
       const response = await fetch(
@@ -56,71 +40,97 @@ const Forgot = () => {
   };
 
   return (
-    <div className="row g-0 auth-wrapper">
-      <div className="col-12 col-md-5 col-lg-6 h-100">
-        <div className="auth-background-holder"></div>
-        <div style={{ width: '100%', height: '100%' }}>
+    <Row gutter={0} className="auth-wrapper" style={{ minHeight: "100vh" }}>
+      {/* Cột bên trái cho hình ảnh */}
+      <Col xs={0} sm={0} md={12} lg={14} xl={16} className="auth-background-col">
+        <div className="auth-background-holder" style={{ height: "100%" }}>
           <img
             src={chungCu}
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover' // hoặc 'contain' nếu muốn toàn bộ ảnh hiển thị mà không bị cắt
+              objectFit: 'cover'
             }}
             alt="Chung cư"
           />
         </div>
-      </div>
+      </Col>
 
-      <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center">
-        <div className="d-flex flex-column align-content-end">
-          <div className="auth-body mx-auto">
-            <p>Quên mật khẩu</p>
-            <div className="auth-form-container text-start">
-              <form onSubmit={handleSendOtp} autoComplete="off">
-                <div className="email mb-3">
-                  <input
-                    type="email"
-                    className={`form-control ${
-                      validate.validate?.email ? "is-invalid" : ""
-                    }`}
-                    value={email}
-                    placeholder="Email đăng ký"
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <div
-                    className={`invalid-feedback ${
-                      validate.validate?.email ? "d-block" : "d-none"
-                    }`}
-                  >
-                    {validate.validate?.email?.[0]}
-                  </div>
-                </div>
-
-                {error && <div className="alert error mb-3">{error}</div>}
-
-                <div className="text-center">
-                  <button
-                    type="submit"
-                    className="btn btn-primary w-100 theme-btn mx-auto"
-                    disabled={loading}
-                  >
-                    {loading ? "Đang gửi..." : "Gửi mã OTP"}
-                  </button>
-                </div>
-              </form>
-
-              <hr />
-              <div className="auth-option text-center pt-2">
-                <Link className="text-link" to="/login">
-                  Quay lại đăng nhập
-                </Link>
-              </div>
+      {/* Cột bên phải cho form */}
+      <Col xs={24} sm={24} md={12} lg={10} xl={8} className="auth-main-col">
+        <div style={{ 
+          height: "100%", 
+          display: "flex", 
+          flexDirection: "column", 
+          justifyContent: "center", 
+          padding: "2rem" 
+        }}>
+          <Card 
+            bordered={false} 
+            className="auth-card"
+            style={{ 
+              maxWidth: "400px", 
+              width: "100%", 
+              margin: "0 auto",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)" 
+            }}
+          >
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <Title level={3}>Quên mật khẩu</Title>
+              <Text type="secondary">Nhập email để nhận mã OTP đặt lại mật khẩu</Text>
             </div>
-          </div>
+
+            {error && (
+              <Alert
+                message="Lỗi"
+                description={error}
+                type="error"
+                showIcon
+                style={{ marginBottom: "1rem" }}
+              />
+            )}
+
+            <Form
+              form={form}
+              name="forgot_password"
+              onFinish={handleSendOtp}
+              layout="vertical"
+              requiredMark={false}
+            >
+              <Form.Item
+                name="email"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập email!' },
+                  { type: 'email', message: 'Email không hợp lệ!' }
+                ]}
+              >
+                <Input 
+                  prefix={<MailOutlined />} 
+                  placeholder="Email đăng ký" 
+                  size="large"
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={loading}
+                  block
+                  size="large"
+                >
+                  {loading ? "Đang gửi..." : "Gửi mã OTP"}
+                </Button>
+              </Form.Item>
+            </Form>
+
+            <div style={{ textAlign: "center", marginTop: "1rem" }}>
+              <Link to="/login">Quay lại đăng nhập</Link>
+            </div>
+          </Card>
         </div>
-      </div>
-    </div>
+      </Col>
+    </Row>
   );
 };
 
